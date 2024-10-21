@@ -1,4 +1,4 @@
-import Solution from Solution.py
+from Solution.py import Solution
 class Accusation:
     def __init__(self, player_username, character, weapon, room):
         """
