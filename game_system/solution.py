@@ -1,5 +1,5 @@
 from suggestion import Suggestion
-class Solution(Suggestion)
+class Solution(Suggestion):
     def __init__(self, character, room, weapon):
         """
         Initialize a Solution object, inheriting from the Suggestion Class.

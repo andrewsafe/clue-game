@@ -25,57 +25,60 @@ cards = [
 ]
 
 characters = {1: "Colonel Mustard", 2: "Professor Plum", 3: "Reverend Green", 4: "Mrs. Peacock", 5: "Miss Scarlett", 6: "Mrs. White"}
-weapon = {1: "Dagger", 2: "Candlestick", 3: "Revolver", 4: "Rope", 5: "Lead piping", 6: "Spanner"}
+weapons = {1: "Dagger", 2: "Candlestick", 3: "Revolver", 4: "Rope", 5: "Lead piping", 6: "Spanner"}
 rooms = {1: "Hall", 2: "Lounge", 3: "Library", 4: "Kitchen", 5: "Billiard Room", 6: "Study", 7: "Ballroom", 8: "Dining Room", 9: "Conservatory"}
 
 players = []
 
 def setup():
 
-def distributeCards():
+    def distributeCards():
+        # Logic to distribute cards to players can go here.
+        pass
 
-def displayMenu():
-    """
-    Display the menu options to the user.
-    """
-    print("----- Main Menu -----")
-    print("1. Move player to an adjacent room or hallway")
-    print("2. Make a suggestion")
-    print("3. Make an accusation")
+    def displayMenu():
+        """
+        Display the menu options to the user.
+        """
+        print("----- Main Menu -----")
+        print("1. Move player to an adjacent room or hallway")
+        print("2. Make a suggestion")
+        print("3. Make an accusation")
 
-def playerTurn(player: Player):
-    displayMenu()
+    def playerTurn(player: Player):
+        displayMenu()
 
     action = input("Action (Enter number): ")
 
     if action == "1":
-    
-    # Current player makes a suggestion
+        # Logic to move player to a new room/hallway goes here.
+        print("Player is moving.")
+        pass  # Replace with actual implementation
+
     elif action == "2":
         print(optionTable)
         print("Select a character, weapon, and room from the options above (number).")
         character = int(input("Character: "))
-        weapon = int(input("Character: "))
-        room = int(input("Character: "))
-        suggestion = Suggestion(characters[character], weapons[weapon], room[room])
+        weapon = int(input("Weapon: "))
+        room = int(input("Room: "))
+        suggestion = Suggestion(characters[character], weapons[weapon], rooms[room])
 
         for player in players:
             suggestion.checkSuggestion(player.cards)
-    
+
     elif action == "3":
         print(optionTable)
         print("Select a character, weapon, and room from the options above (number).")
         character = int(input("Character: "))
-        weapon = int(input("Character: "))
-        room = int(input("Character: "))
-        accusation = Accusation(characters[character], weapons[weapon], room[room])
+        weapon = int(input("Weapon: "))
+        room = int(input("Room: "))
+        accusation = Accusation(characters[character], weapons[weapon], rooms[room])
 
+        # Assuming you have a `solution` object available for the game
         if accusation.checkAccusation(solution):
-            print("Player ", player.username, " has won the game.")
+            print(f"Player {player.username} has won the game.")
         else:
-            print("Player ", player.username, " has made an incorrect accusation.")
-    
+            print(f"Player {player.username} has made an incorrect accusation.")
+
     else:
         print("Invalid input for action")
-
-
