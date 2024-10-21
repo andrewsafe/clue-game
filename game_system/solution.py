@@ -1,3 +1,4 @@
+from suggestion.py import Suggestion
 class Solution(Suggestion)
     def __init__(self, character, room, weapon):
         """

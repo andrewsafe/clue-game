@@ -1,7 +1,7 @@
-from objects.Suggestion import Suggestion
-from objects.Accusation import Accusation
-from objects.Player import Player
-from objects.Solution import Solution
+from game_system.suggestion import Suggestion
+from game_system.accusation import Accusation
+from game_system.player import Player
+from game_system.solution import Solution
 
 optionTable = """  
 ========================================================================

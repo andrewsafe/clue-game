@@ -1,18 +1,15 @@
-from Solution.py import Solution
-class Accusation:
-    def __init__(self, player_username, character, weapon, room):
+from solution.py import Solution
+from suggestion.py import Suggestion
+class Accusation(Suggestion):
+    def __init__(self, character, weapon, room):
         """
-        Initialize a Accusation object.
+        Initialize a Accusation object, inheriting from the Suggestion Class.
 
-        :param player_username: The username of the player making the accusation.
         :param character: The character used in the accusation.
         :param weapon: The weapon used in the accusation.
         :param room: The room used in the accusation.
         """
-        self.player_username = player_username
-        self.character = character
-        self.weapon = weapon
-        self.room = room
+        super().__init__(character, weapon, room)
     
     def checkAccusation(self, solution: Solution):
         """
