@@ -1,5 +1,5 @@
-from solution.py import Solution
-from suggestion.py import Suggestion
+from solution import Solution
+from suggestion import Suggestion
 class Accusation(Suggestion):
     def __init__(self, character, weapon, room):
         """
