@@ -1,5 +1,5 @@
-from solution import Solution
-from suggestion import Suggestion
+from .solution import Solution
+from .suggestion import Suggestion
 class Accusation(Suggestion):
     def __init__(self, character, weapon, room):
         """
@@ -19,11 +19,10 @@ class Accusation(Suggestion):
 
         Return False if the accusation is incorrect. Return True if the accusation is correct.
         """
-
         if self.character != solution.character:
             return False
         if self.room != solution.room:
             return False
-        if self.weapon != weapon:
+        if self.weapon != solution.weapon:
             return False
         return True
