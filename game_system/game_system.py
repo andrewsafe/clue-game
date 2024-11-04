@@ -16,33 +16,33 @@ class GameSystem:
         Setup the cards for the game. This includes suspects, weapons, and rooms.
         """
         suspects = [
-            Card("Mr. Pikachu", "suspect"),
-            Card("Professor Oak", "suspect"),
-            Card("Mrs. Mew", "suspect"),
-            Card("Mr. Blastoise", "suspect"),
-            Card("Colonel Bulbasaur", "suspect"),
-            Card("Mrs. Dragonite", "suspect"),
+            Card("Colonel Mustard", "suspect"),
+            Card("Professor Plum", "suspect"),
+            Card("Reverend Green", "suspect"),
+            Card("Mrs. Peacock ", "suspect"),
+            Card("Miss Scarlett", "suspect"),
+            Card("Mrs. White ", "suspect")
         ]
 
         weapons = [
-            Card("Candlestick", "weapon"),
             Card("Dagger", "weapon"),
-            Card("Lead Pipe", "weapon"),
+            Card("Candlestick", "weapon"),
             Card("Revolver", "weapon"),
             Card("Rope", "weapon"),
-            Card("Wrench", "weapon"),
+            Card("Lead Pipe", "weapon"),
+            Card("Wrench", "weapon")
         ]
 
         rooms = [
-            Card("Ballroom", "room"),
-            Card("Kitchen", "room"),
-            Card("Conservatory", "room"),
-            Card("Dining Room", "room"),
+            Card("Hall", "room"),
             Card("Lounge", "room"),
             Card("Library", "room"),
-            Card("Hall", "room"),
-            Card("Study", "room"),
+            Card("Kitchen", "room"),
             Card("Billiard Room", "room"),
+            Card("Study", "room"),
+            Card("Ballroom", "room"),
+            Card("Dining Room", "room"),
+            Card("Conservatory", "room")
         ]
 
         # Combine all cards into one list
@@ -77,5 +77,6 @@ class GameSystem:
         """
         Start the game by distributing cards and displaying player cards.
         """
+        #will have to create solution first before distributing remaining cards
         self.distribute_cards()
         self.show_player_cards()

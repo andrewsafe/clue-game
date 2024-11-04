@@ -1,6 +1,6 @@
-from suggestion import Suggestion
+from .suggestion import Suggestion
 class Solution(Suggestion):
-    def __init__(self, character, room, weapon):
+    def __init__(self, character, weapon, room):
         """
         Initialize a Solution object, inheriting from the Suggestion Class.
 

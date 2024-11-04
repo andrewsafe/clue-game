@@ -3,6 +3,8 @@ from game_system.accusation import Accusation
 from game_system.player import Player
 from game_system.solution import Solution
 
+#for future use/reference (text based GUI)
+
 optionTable = """  
 ========================================================================
 ||......Characters.......||......Weapons......||........Rooms........||
@@ -31,6 +33,7 @@ rooms = {1: "Hall", 2: "Lounge", 3: "Library", 4: "Kitchen", 5: "Billiard Room",
 players = []
 
 def setup():
+    return 0
 
     def distributeCards():
         # Logic to distribute cards to players can go here.

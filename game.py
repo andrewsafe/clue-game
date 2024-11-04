@@ -1,3 +1,7 @@
+from game_system.suggestion import Suggestion
+from game_system.accusation import Accusation
+from game_system.player import Player
+from game_system.solution import Solution
 class Game:
     def __init__(self):
         self.players = {
@@ -33,9 +37,13 @@ class Game:
     def make_suggestion(self, player_id, suggestion):
         if player_id not in self.players:
             raise ValueError(f"Player {player_id} does not exist.")
+        #will flesh out for minimal/target requirements
+        #suggestion.checkSuggestion(player_id.cards)
         return f"Player {player_id} made a suggestion: {suggestion}."
 
     def make_accusation(self, player_id, accusation):
         if player_id not in self.players:
             raise ValueError(f"Player {player_id} does not exist.")
+        #will flesh out for minimal/target requirements
+        #accusation.checkAccusation(solution)
         return f"Player {player_id} made an accusation: {accusation}."
