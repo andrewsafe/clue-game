@@ -6,7 +6,7 @@ from game_system.card import Card
 from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
 import random
-
+from game_system.BoardManager import BoardManager
 optionTable = """  
 ========================================================================
 ||......Characters.......||......Weapons......||........Rooms........||
@@ -59,6 +59,22 @@ def displayMenu():
         print("2. Make a suggestion")
         print("3. Make an accusation")
 
+def displayMovementMenu():
+    print("----- Movement Menu -----")
+    """  
+    ==================================================
+    ||......Characters.......||........Rooms........||
+    ||  a.) Mustard          ||  1.) Hall           ||
+    ||  b.) Plum             ||  2.) Lounge         ||
+    ||  c.) Green            ||  3.) Library        ||
+    ||  d.) Peacock          ||  4.) Kitchen        ||
+    ||  e.) Scarlett         ||  5.) Billiard Room  ||
+    ||  f.) White            ||  6.) Study          ||
+    ||                       ||  7.) Ballroom       ||
+    ||                       ||  8.) Dining Room    ||
+    ||                       ||  9.) Conservatory   ||
+    ==================================================
+    """
 def createSolution(cards):
     # Create Solution for game
     character = cards[random.randint(0, 5)]
@@ -73,26 +89,30 @@ def createSolution(cards):
 def main():
     # Create a GameSystem instance
     game = GameSystem()
-
+    #create the board object
+    board_manager = BoardManager()
     # Add players to the game
     game.add_player("Andrew")
     game.add_player("Justin")
     game.add_player("Elliot")
-
+    # Make a few character's to Cycle: TODO Implement into game sytem, or somehow tie characters to player.
+    characters_list = ["Scarlett", "Plum", "Green"]
+    character_counter = 0
 
     # Create Solution and remove those cards from the deck
     solution = createSolution(game.cards)
-
     # Start the game
     game.start_game()
 
     # Create a TurnManager instance
     turn_manager = TurnManager(game.players)
+    # Starting board draw
+    board_manager.draw_detailed_board()
 
     # Simulate a few turns
     for _ in range(len(game.players)):
         current_player = turn_manager.current_player()
-        print(f"It's {current_player.name}'s turn.")
+        print(f"It's {current_player.name}'s({characters_list[character_counter]}'s) turn.")
         # Simulate some action (like making a suggestion or moving)
         # Display menu options and prompt player to choose an option
         displayMenu()
@@ -103,6 +123,17 @@ def main():
             # Logic to move player to a new room/hallway goes here.
             print("Player is moving.")
             pass  # Replace with actual implementation
+            possible_directions = board_manager.get_possible_moves(characters_list[character_counter])
+            input_direction = input 
+            """ 
+            if board_manager.check_if_valid_direction_input():
+                #TODO Implement new move
+                return
+            else:
+                #TODO Implement retry/back to men
+                return
+            """
+            board_manager.draw_board()
         
         # Make a Suggestion
         elif action == "2":
@@ -143,6 +174,10 @@ def main():
 
         print(f"{current_player.name}'s cards: {current_player.show_cards()}")
 
+        # Advance to next character TODO Increment/tie character to Player together.
+        character_counter += 1
+        if character_counter > 2:
+            character_counter = 0
         # Advance to the next player's turn
         turn_manager.next_turn()
 
