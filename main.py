@@ -1,11 +1,21 @@
+# main.py
+from flask import Flask, request, jsonify
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
-from game import Game
 from game_system.solution import Solution
 from game_system.card import Card
 from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
 import random
+
+app = Flask(__name__)
+game_system = GameSystem()
+turn_manager = TurnManager(game_system.players)
+
+# Add initial players for testing
+game_system.add_player("player1")
+game_system.add_player("player2")
+game_system.add_player("player3")
 
 optionTable = """  
 ========================================================================
@@ -50,105 +60,77 @@ cards = [[
         Card("Conservatory", "room")    
     ]]
 
-def displayMenu():
-        """
-        Display the menu options to the user.
-        """
-        print("----- Main Menu -----")
-        print("1. Move player to an adjacent room or hallway")
-        print("2. Make a suggestion")
-        print("3. Make an accusation")
+@app.route('/api/players/turn', methods=['POST'])
+def player_turn():
+    data = request.json
+    action = data.get("action")
+    player_id = data.get("playerId")
 
-def createSolution(cards):
-    # Create Solution for game
-    character = cards[random.randint(0, 5)]
-    weapon = cards[6 + random.randint(0, 5)]
-    room = cards[12 + random.randint(0, 8)]
-    solution = Solution(character, weapon, room)
-    cards.remove(character)
-    cards.remove(weapon)
-    cards.remove(room)
-    return solution
+    print(f"Player {player_id} is trying to {action} their turn.")
 
-def main():
-    # Create a GameSystem instance
-    game = GameSystem()
+    if action == "start":
+        message = game_system.start_turn(player_id)
+        print(f"Turn started for Player {player_id}.")
+        return jsonify({"message": message}), 200
+    elif action == "end":
+        next_player = game_system.end_turn(player_id)
+        print(f"Turn ended for Player {player_id}. Next player: {next_player}.")
+        return jsonify({"message": f"Turn ended. Next player: {next_player}"}), 200
+    else:
+        print(f"Invalid action: {action} for Player {player_id}.")
+        return jsonify({"error": "Invalid action"}), 400
 
-    # Add players to the game
-    game.add_player("Andrew")
-    game.add_player("Justin")
-    game.add_player("Elliot")
+@app.route('/api/players/move', methods=['POST'])
+def player_move():
+    data = request.json
+    player_id = data.get("playerId")
+    destination = data.get("destination")
 
+    print(f"Player {player_id} is moving to {destination}.")
 
-    # Create Solution and remove those cards from the deck
-    solution = createSolution(game.cards)
+    message = game_system.move_player(player_id, destination)
+    print(f"Player {player_id} moved to {destination}.")
+    return jsonify({"message": message}), 200
 
-    # Start the game
-    game.start_game()
+@app.route('/api/players/suggestion', methods=['POST'])
+def player_suggestion():
+    data = request.json
+    player_id = data.get("playerId")
+    suggestion_data = data.get("suggestion")
 
-    # Create a TurnManager instance
-    turn_manager = TurnManager(game.players)
+    print(f"Player {player_id} made a suggestion: {suggestion_data}.")
 
-    # Simulate a few turns
-    for _ in range(len(game.players)):
-        current_player = turn_manager.current_player()
-        print(f"It's {current_player.name}'s turn.")
-        # Simulate some action (like making a suggestion or moving)
-        # Display menu options and prompt player to choose an option
-        displayMenu()
+    suggestion = Suggestion(
+        cards[0][suggestion_data['character'] - 1],
+        cards[1][suggestion_data['weapon'] - 1],
+        cards[2][suggestion_data['room'] - 1]
+    )
 
-        action = input("Action (Enter number): ")
+    message = game_system.make_suggestion(player_id, suggestion)
+    print(f"Suggestion processed for Player {player_id}.")
+    return jsonify({"message": message}), 200
 
-        if action == "1":
-            # Logic to move player to a new room/hallway goes here.
-            print("Player is moving.")
-            pass  # Replace with actual implementation
-        
-        # Make a Suggestion
-        elif action == "2":
-            print(optionTable)
-            print("Select a character, weapon, and room from the options above (number).")
-            character = int(input("Character: ")) - 1
-            weapon = int(input("Weapon: ")) - 1
-            room = int(input("Room: ")) - 1
-            suggestion = Suggestion(cards[0][character], cards[1][weapon], cards[2][room])
+@app.route('/api/players/accusation', methods=['POST'])
+def player_accusation():
+    data = request.json
+    player_id = data.get("playerId")
+    accusation_data = data.get("accusation")
 
-            for player in game.players:
-                incorrect_cards = suggestion.checkSuggestion(player.cards)
-                if incorrect_cards != []:
-                    for i in range(len(incorrect_cards)):
-                        print(f"{i + 1}:  Card: {incorrect_cards[i].name}  Category: {incorrect_cards[i].category}")
-                    print("Select the card you wish to reveal is incorrect (number).")
-                    card = int(input("Card: ")) - 1
-                    print(f"Card: {incorrect_cards[card].name}  Category: {incorrect_cards[card].category} is incorrect.")
-                    break
-        
-        # Make an Accusation
-        elif action == "3":
-            print(optionTable)
-            print("Select a character, weapon, and room from the options above (number).")
-            character = int(input("Character: ")) - 1
-            weapon = int(input("Weapon: ")) - 1
-            room = int(input("Room: ")) - 1
-            accusation = Accusation(cards[0][character], cards[1][weapon], cards[2][room])
+    print(f"Player {player_id} made an accusation: {accusation_data}.")
 
-            # Checks if accusation is correct
-            if accusation.checkAccusation(solution):
-                print(f"Player {current_player.name} has won the game.")
-            else:
-                print(f"Player {current_player.name} has made an incorrect accusation.")
-        
-        else:
-            print("Invalid option selected.")
+    accusation = Accusation(
+        cards[0][accusation_data['character'] - 1],
+        cards[1][accusation_data['weapon'] - 1],
+        cards[2][accusation_data['room'] - 1]
+    )
 
-        print(f"{current_player.name}'s cards: {current_player.show_cards()}")
-
-        # Advance to the next player's turn
-        turn_manager.next_turn()
-
-    # Reset turns and show the current player again
-    turn_manager.reset_turns()
-    print(turn_manager)  # Output: Current turn: Alice
+    result = game_system.check_accusation(player_id, accusation)
+    if result:
+        print(f"Player {player_id} has won the game.")
+        return jsonify({"message": "Correct accusation. Player wins!"}), 200
+    else:
+        print(f"Player {player_id} made an incorrect accusation.")
+        return jsonify({"message": "Incorrect accusation."}), 200
 
 if __name__ == "__main__":
-    main()
+    app.run(debug=True)
