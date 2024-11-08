@@ -14,7 +14,7 @@ game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
-# Add initial players for testing
+#Add initial players for testing
 game_system.add_player("player1")
 game_system.add_player("player2")
 game_system.add_player("player3")
@@ -158,17 +158,25 @@ def main():
     # Create a GameSystem instance
     game = GameSystem()
 
+    #create the board object
+    board_manager = BoardManager()
     # Add players to the game
     game.add_player("Andrew")
     game.add_player("Justin")
     game.add_player("Elliot")
 
+    # Make a few character's to Cycle: TODO Implement into game sytem, or somehow tie characters to player.
+    characters_list = ["Scarlett", "Plum", "Green"]
+    character_counter = 0
 
     # Create Solution and remove those cards from the deck
     solution = createSolution(game.cards)
 
     # Start the game
     game.start_game()
+
+    # Starting board draw
+    board_manager.draw_detailed_board()
 
     # Create a TurnManager instance
     turn_manager = TurnManager(game.players)
@@ -187,6 +195,17 @@ def main():
             # Logic to move player to a new room/hallway goes here.
             print("Player is moving.")
             pass  # Replace with actual implementation
+            possible_directions = board_manager.get_possible_moves(characters_list[character_counter])
+            input_direction = input 
+            """ 
+            if board_manager.check_if_valid_direction_input():
+                #TODO Implement new move
+                return
+            else:
+                #TODO Implement retry/back to men
+                return
+            """
+            board_manager.draw_board()
         
         # Make a Suggestion
         elif action == "2":
@@ -228,6 +247,11 @@ def main():
 
         print(f"{current_player.name}'s cards: {current_player.show_cards()}")
 
+        # Advance to next character TODO Increment/tie character to Player together.
+        character_counter += 1
+        if character_counter > 2:
+            character_counter = 0
+
         # Advance to the next player's turn
         turn_manager.next_turn()
 
@@ -236,4 +260,5 @@ def main():
     print(turn_manager)  # Output: Current turn: Alice
 
 if __name__ == "__main__":
+    main()
     app.run(debug=True)
