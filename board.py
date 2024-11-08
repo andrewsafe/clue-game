@@ -2,13 +2,13 @@
 
 class board:
 
-  def _init_(self):
+  def __init__(self):
     self.character_locations = {
-    "Scarlet": "Hallway4",
+    "Scarlett": "Hallway4",
     "Plum": "Hallway6",
     "Mustard": "Hallway10",
     "Peacock": "Hallway16",
-    "green": "Hallway21",
+    "Green": "Hallway21",
     "White": "Hallway23"
     }
     self.weapon_locations = {
@@ -34,6 +34,7 @@ class board:
       print(f"{character} has moved to the {new_room}.")
     else:
       print(f"{character, new_room in self.character_locations.items()}")
+
   #Get the value at a specific row and column on the board.
   def moveWeaponToRoom(self, weapon, new_room ):
     if weapon in self.weapon_locations:
@@ -42,6 +43,7 @@ class board:
     else:
       print(f"{weapon, new_room in self.character_locations.items()}")
 
+  # Check if Character's move to specific locatin is valid
   def is_valid_move(self, character, desired_location):
     if character not in self.character_locations:
       return False
@@ -67,16 +69,17 @@ class board:
           return True
         
   def get_coordinates(self, location):
-      """Get the row and column coordinates of a given location."""
-      for row in range(len(self.board)):
-          for col in range(len(self.board[row])):
-              if self.board[row][col] == location:
-                  return row, col
-      return None
+    """Get the row and column coordinates of a given location."""
+    for row in range(len(self.clue_board)):
+        for col in range(len(self.clue_board[row])):
+            if self.clue_board[row][col] == location:
+                return row, col
+    return None
   
   #Get the value at a specific row and column on the board.
   def get_location(self, row, col):
-        if 0 <= row < len(self.board) and 0 <= col < len(self.board[0]):
-            return self.board[row][col]
-        else:
-            return "Invalid location"
+    if 0 <= row < len(self.clue_board) and 0 <= col < len(self.clue_board[0]):
+        return self.clue_board[row][col]
+    else:
+        return "Invalid location"
+        

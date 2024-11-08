@@ -6,11 +6,13 @@ from game_system.solution import Solution
 from game_system.card import Card
 from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
+from game_system.BoardManager import BoardManager
 import random
 
 app = Flask(__name__)
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
+board_manager = BoardManager()
 
 # Add initial players for testing
 game_system.add_player("player1")
@@ -131,6 +133,15 @@ def player_accusation():
     else:
         print(f"Player {player_id} made an incorrect accusation.")
         return jsonify({"message": "Incorrect accusation."}), 200
+
+def displayMenu():
+    """
+    Display the menu options to the user.
+    """
+    print("----- Main Menu -----")
+    print("1. Move player to an adjacent room or hallway")
+    print("2. Make a suggestion")
+    print("3. Make an accusation")
 
 if __name__ == "__main__":
     app.run(debug=True)
