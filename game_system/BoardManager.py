@@ -1,5 +1,3 @@
-import board
-
 class BoardManager:
     _instance = None
     _initialized = False
@@ -39,7 +37,7 @@ class BoardManager:
             ["Conservatory", "Hallway21", "Ballroom", "Hallway23", "Kitchen"]
             ]
 
-    def check_if_valid_direction_input(self, character_name):
+    def check_if_valid_character_input(self, character_name):
         # Normalize the input to lowercase
         character_name_lower = character_name.lower()
         # Create a set of valid character names in lowercase
@@ -47,6 +45,12 @@ class BoardManager:
         # Check if the normalized input is in the set of valid characters
         return character_name_lower in valid_characters
         
+    def check_if_valid_direction_input(self, possible_directions, input_direction):  
+        for cur_direction in possible_directions:
+            if input_direction == cur_direction:
+                return True
+            else:
+                return False
 
     def get_possible_moves(self, player_character):
         #Prints out possible directions (Up, Down, Left, Right) you can move from the given room.oom_name (str): The name of the current room.
@@ -81,8 +85,8 @@ class BoardManager:
         # Print the possible directions
         if directions:
             print(f"From '{room_name}', you can move to:")
-            for direction, destination in directions:
-                print(f"  {direction}: {destination}")
+            for idx, (direction, destination) in enumerate(directions, start=1):
+                print(f"  {idx}. {direction}: {destination}")
             return directions
         else:
             print(f"No available moves from '{room_name}'.")
@@ -188,3 +192,25 @@ class BoardManager:
                 # Print separator between rows
                 print("-" * total_width)
         print("=" * total_width + "\n")
+
+
+        #Update character to be in specific room.
+ 
+    def moveCharToRoom(self, character, new_room ):
+        if character in self.character_locations:
+            self.character_locations[character] = new_room
+            print(f"{character} has moved to the {new_room}.")
+        else:
+            print(f"{character, new_room in self.character_locations.items()}")
+
+    def getCharRoom(self, character):
+        if character in self.character_locations:
+            return self.character_locations[character]
+        
+        else:
+            print(f"Character '{character}' not found.")
+            return None
+
+    def printCharLocations(self):
+        print(self.character_locations)
+        return

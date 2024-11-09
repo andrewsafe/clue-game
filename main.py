@@ -174,17 +174,17 @@ def main():
 
     # Start the game
     game.start_game()
-
-    # Starting board draw
-    board_manager.draw_detailed_board()
+    # Initial Board Draw
+    #board_manager.draw_detailed_board()
 
     # Create a TurnManager instance
     turn_manager = TurnManager(game.players)
 
     # Simulate a few turns
     for _ in range(len(game.players)):
+        board_manager.draw_detailed_board()
         current_player = turn_manager.current_player()
-        print(f"It's {current_player.name}'s turn.")
+        print(f"It's {current_player.name} (" + characters_list[character_counter] + ")'s turn.")
         # Simulate some action (like making a suggestion or moving)
         # Display menu options and prompt player to choose an option
         displayMenu()
@@ -192,20 +192,26 @@ def main():
         action = input("Action (Enter number): ")
 
         if action == "1":
-            # Logic to move player to a new room/hallway goes here.
-            print("Player is moving.")
-            pass  # Replace with actual implementation
-            possible_directions = board_manager.get_possible_moves(characters_list[character_counter])
-            input_direction = input 
-            """ 
-            if board_manager.check_if_valid_direction_input():
-                #TODO Implement new move
-                return
+            #board_manager.draw_detailed_board()
+            exit_flag = False
+
+            if board_manager.check_if_valid_character_input(characters_list[character_counter]):
+                possible_directions = board_manager.get_possible_moves(characters_list[character_counter])
             else:
-                #TODO Implement retry/back to men
+                print("Invalid character selected: ")
                 return
-            """
-            board_manager.draw_board()
+
+            #Start movement flagged loop
+            while(exit_flag == False):
+                input_direction = int(input("Move Option (Enter number): ")) - 1
+                if input_direction >= 0 & input_direction < len(possible_directions):
+                    selected_move = possible_directions[input_direction]
+                    direction, destination_room = selected_move  # Unpack the tuple
+                    board_manager.moveCharToRoom(characters_list[character_counter], destination_room)
+                    board_manager.printCharLocations()
+                    exit_flag = True
+                else:
+                    print("Move invalid!")
         
         # Make a Suggestion
         elif action == "2":
