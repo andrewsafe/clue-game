@@ -116,23 +116,17 @@ class BoardManager:
 
     def draw_detailed_board(self):
         """
-        Draws a detailed text-based map of the Clue board.
-        Displays room names at the top of each room cell (excluding hallways),
-        fills empty spaces with placeholders, and shows players in their current
-        locations with their names in purple.
+        Draws a detailed representation of the Clue board.
+        Returns a JSON-serializable structure of the board state.
         """
-        # ANSI escape code for purple (bright magenta)
-        PURPLE = '\033[95m'
-        RESET = '\033[0m'
-
-        rows = len(self.clue_board)
-        cols = len(self.clue_board[0])
-
         # Define cell dimensions
         CELL_WIDTH = 15
         CELL_HEIGHT = 5  # Adjust as needed
 
-        # Build a display grid
+        rows = len(self.clue_board)
+        cols = len(self.clue_board[0])
+
+        # Create a display grid as a list of lists to be JSON-serializable
         display_grid = []
 
         for row_index in range(rows):
@@ -163,8 +157,10 @@ class BoardManager:
                     # Placeholder for player names
                     cell_lines.append(' ' * CELL_WIDTH)
 
+                # Append cell content to the current row
                 row_cells.append(cell_lines)
 
+            # Append the row to the display grid
             display_grid.append(row_cells)
 
         # Place characters in their locations
@@ -173,28 +169,17 @@ class BoardManager:
             if coords:
                 row, col = coords
                 cell_lines = display_grid[row][col]
-                player_name = PURPLE + character + RESET
+                player_name = character  # Remove ANSI escape codes for JSON serialization
 
                 # Place player name in the last line of the cell content
                 cell_lines[-1] = player_name.center(CELL_WIDTH)
 
-        # Print the display grid
-        total_width = cols * (CELL_WIDTH + 3) - 3  # Adjust for separators
-        print("\n" + "=" * total_width)
-        for row_index, row_cells in enumerate(display_grid):
-            # For each line in the cell height
-            for line_index in range(CELL_HEIGHT):
-                row_line = ''
-                for cell_lines in row_cells:
-                    row_line += cell_lines[line_index] + ' | '
-                print(row_line.rstrip(' | '))
-            if row_index < len(display_grid) - 1:
-                # Print separator between rows
-                print("-" * total_width)
-        print("=" * total_width + "\n")
+        # Convert display grid to a JSON-serializable format
+        json_grid = [
+            ['\n'.join(cell_lines) for cell_lines in row_cells] for row_cells in display_grid
+        ]
 
-
-        #Update character to be in specific room.
+        return json_grid
  
     def moveCharToRoom(self, character, new_room ):
         if character in self.character_locations:

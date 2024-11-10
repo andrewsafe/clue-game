@@ -54,32 +54,36 @@ class GameSystem:
         self.cards = suspects + weapons + rooms
 
     def add_player(self, player_name):
-        """
-        Add a player to the game.
+    
+        # Check if the player already exists
+        if player_name in [player.name for player in self.players]:
+            return f"{player_name} already exists in the game."
 
-        :param player_name: The name of the player.
-        """
+        # Create a new player and add to the game
         new_player = Player(player_name)
         self.players.append(new_player)
+        return f"{player_name} added successfully."
+
 
     def start_turn(self, player_id):
         if player_id not in [player.name for player in self.players]:
-            raise ValueError(f"Player {player_id} does not exist.")
+            raise ValueError(f"{player_id} does not exist.")
         self.current_turn = player_id
-        return "Player's turn started."
+        return f"{player_id}'s turn started."
+
 
     def end_turn(self, player_id):
         if player_id != self.current_turn:
             raise ValueError(f"It's not {player_id}'s turn.")
         self.current_turn = None  # Logic for moving to the next player can be added here
-        return "Player's turn ended."
+        return f"{player_id}'s turn ended."
 
     def move_player(self, player_id, destination):
         player = next((p for p in self.players if p.name == player_id), None)
         if not player:
-            raise ValueError(f"Player {player_id} does not exist.")
+            raise ValueError(f"{player_id} does not exist.")
         player.position = destination
-        return f"Player {player_id} moved to {destination}."
+        return f"{player_id} moved to {destination}."
 
     def make_suggestion(self, player_id, suggestion):
         if player_id not in [player.name for player in self.players]:
