@@ -1,0 +1,44 @@
+.app {
+  background-color: #1e1e2f; /* Dark background similar to ChatGPT's dark mode */
+  color: #e0e0e0; /* Light gray text */
+  min-height: 100vh;
+  padding: 20px;
+  font-family: "Arial", sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  color: #e0e0e0;
+}
+
+.input {
+  background-color: #2b2b3d;
+  color: #e0e0e0;
+  border: 1px solid #3e3e4f;
+  padding: 10px;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.button {
+  background-color: #3e3e4f;
+  color: #e0e0e0;
+  border: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.button:hover {
+  background-color: #50505f;
+}
+
+.game-state {
+  background-color: #2b2b3d;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 5px;
+  overflow-x: auto;
+}
