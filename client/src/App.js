@@ -36,6 +36,8 @@ function App() {
   const [assignedCharacters, setAssignedCharacters] = useState([]);
   const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
+  axios.defaults.baseURL = "http://localhost:5000";
+
   useEffect(() => {
     if (playerCreated && gameStarted) {
       fetchGameState();
@@ -44,7 +46,7 @@ function App() {
 
   const fetchGameState = () => {
     axios
-      .get("http://127.0.0.1:5000/detailed-board")
+      .get("/detailed-board")
       .then((response) => {
         console.log("Response data:", response.data);
         setGameState(response.data);
@@ -56,7 +58,7 @@ function App() {
 
   const handleStartGame = () => {
     axios
-      .post("http://127.0.0.1:5000/start-game")
+      .post("/start-game")
       .then((response) => {
         setMessage(response.data.message);
         setGameStarted(true);
@@ -77,7 +79,7 @@ function App() {
 
   const fetchOptionTable = () => {
     axios
-      .get("http://127.0.0.1:5000/api/optionTable") // Make sure this endpoint returns the option table
+      .get("/api/optionTable") // Make sure this endpoint returns the option table
       .then((response) => {
         setOptionTable(response.data.optionTable);
         console.log("Option table fetched:", response.data);
@@ -89,7 +91,7 @@ function App() {
 
   const fetchPlayersAndCards = () => {
     axios
-      .get("http://127.0.0.1:5000/api/players") // Make sure this endpoint returns players and their cards
+      .get("/api/players") // Make sure this endpoint returns players and their cards
       .then((response) => {
         setPlayers(response.data.players);
         setPlayerCards(response.data.cards);
@@ -107,7 +109,7 @@ function App() {
     }
 
     axios
-      .post("http://127.0.0.1:5000/api/players/turn", {
+      .post("/api/players/turn", {
         action: action,
         playerId: playerId,
       })
@@ -129,7 +131,7 @@ function App() {
 
   const handleMovePlayer = () => {
     axios
-      .post("http://127.0.0.1:5000/api/players/move", {
+      .post("/api/players/move", {
         playerId: playerId,
         destination: destination,
       })
@@ -152,9 +154,9 @@ function App() {
 
   const handleMove = (direction) => {
     axios
-      .post("http://127.0.0.1:5000/api/players/move", {
+      .post("/api/players/move", {
         playerId: playerId,
-        direction: direction, // Use direction instead of destination
+        direction: direction,
       })
       .then((response) => {
         setMessage(response.data.message);
@@ -179,7 +181,7 @@ function App() {
     }
 
     axios
-      .post("http://127.0.0.1:5000/api/players/suggestion", {
+      .post("/api/players/suggestion", {
         playerId: playerId,
         suggestion: suggestion,
       })
@@ -205,7 +207,7 @@ function App() {
     }
 
     axios
-      .post("http://127.0.0.1:5000/api/players/accusation", {
+      .post("/api/players/accusation", {
         playerId: playerId,
         accusation: accusation,
       })
@@ -245,7 +247,7 @@ function App() {
       ];
 
     axios
-      .post("http://127.0.0.1:5000/api/players/add", {
+      .post("/api/players/add", {
         playerName: newPlayerName,
         character: randomCharacter,
       })
@@ -479,7 +481,6 @@ function App() {
           </div>
           {gameStarted && (
             <div className="right-panel">
-
               {/* Display the option table above the game board */}
               {optionTable}
 
@@ -499,29 +500,31 @@ function App() {
               ) : (
                 <p>Loading game state...</p>
               )}
-                <div className="players-info">
-                  <h3>Players and Their Cards</h3>
-                  {players.length > 0 ? (
-                    <ul className="player-list">
-                      {players.map((player, index) => (
-                        <li key={index} className="player-item">
-                          <strong>{player.name}</strong>
-                          {player.cards && player.cards.length > 0 ? (
-                            <div className="cards-list">
-                              {player.cards.map((card, cardIndex) => (
-                                <span key={cardIndex} className="card-item">{card.name}</span>
-                              ))}
-                            </div>
-                          ) : (
-                            <span className="no-cards">No cards assigned</span>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p>No players found</p>
-                  )}
-                </div>
+              <div className="players-info">
+                <h3>Players and Their Cards</h3>
+                {players.length > 0 ? (
+                  <ul className="player-list">
+                    {players.map((player, index) => (
+                      <li key={index} className="player-item">
+                        <strong>{player.name}</strong>
+                        {player.cards && player.cards.length > 0 ? (
+                          <div className="cards-list">
+                            {player.cards.map((card, cardIndex) => (
+                              <span key={cardIndex} className="card-item">
+                                {card.name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          <span className="no-cards">No cards assigned</span>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p>No players found</p>
+                )}
+              </div>
             </div>
           )}
         </div>
