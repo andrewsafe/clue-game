@@ -1,4 +1,5 @@
-from flask import Flask, request, jsonify
+import random
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
@@ -49,11 +50,51 @@ cards = [[
         Card("Conservatory", "room")    
     ]]
 
+
+option_table = """  
+========================================================================
+||......Characters.......||......Weapons......||........Rooms........||
+||  1.) Colonel Mustard  ||  1.) Dagger       ||  1.) Hall           ||
+||  2.) Professor Plum   ||  2.) Candlestick  ||  2.) Lounge         ||
+||  3.) Reverend Green   ||  3.) Revolver     ||  3.) Library        ||
+||  4.) Mrs. Peacock     ||  4.) Rope         ||  4.) Kitchen        ||
+||  5.) Miss Scarlett    ||  5.) Lead Pipe    ||  5.) Billiard Room  ||
+||  6.) Mrs. White       ||  6.) Wrench       ||  6.) Study          ||
+||                       ||                   ||  7.) Ballroom       ||
+||                       ||                   ||  8.) Dining Room    ||
+||                       ||                   ||  9.) Conservatory   ||
+========================================================================
+"""
+
+def createSolution():
+    # Create Solution for game
+    character = game_system.cards[random.randint(0, 5)]
+    weapon = game_system.cards[6 + random.randint(0, 5)]
+    room = game_system.cards[12 + random.randint(0, 8)]
+    character = game_system.cards[0]
+    weapon = game_system.cards[6]
+    room = game_system.cards[12]
+    print(f"Solution:  Character: {character}  Weapon: {weapon}  Room:  {room}")
+    game_system.cards.remove(character)
+    game_system.cards.remove(weapon)
+    game_system.cards.remove(room)
+    return Solution(character, weapon, room)
+
+solution = createSolution()
+
+@app.before_request
+def basic_authentication():
+    if request.method.lower() == 'options':
+        return Response()
+
 @app.route('/detailed-board', methods=['GET'])
 def get_detailed_board():
     board_state = board_manager.draw_detailed_board()
     return jsonify(board_state)
     
+@app.route('/api/optionTable', methods=['GET'])
+def get_option_table():
+    return jsonify({"optionTable" : option_table})
 
 @app.route('/api/players/add', methods=['POST'])
 def add_player():
@@ -75,12 +116,12 @@ def add_player():
     print(f"{player_name} added to the game as {character}.")
     return jsonify({"message": message}), 200
 
-
 @app.route('/api/players', methods=['GET'])
 def get_players():
     """
     API endpoint to return player information and their assigned cards.
     """
+
     players_info = []
     for player in game_system.players:
         player_cards = [card.to_dict() for card in player.cards]  # Assuming cards have a to_dict() method
@@ -202,7 +243,8 @@ def player_accusation():
         cards[2][room_index - 1]
     )
 
-    result = game_system.check_accusation(player_id, accusation)
+    #result = game_system.check_accusation(player_id, accusation)
+    result = accusation.checkAccusation(solution)
     if result:
         print(f"{player_id} has won the game.")
         return jsonify({"message": "Correct accusation. {player_id} wins!"}), 200

@@ -4,6 +4,7 @@ import "./App.css";
 
 function App() {
   const [gameState, setGameState] = useState(null);
+  const [optionTable, setOptionTable] = useState("");
   const [playerId, setPlayerId] = useState("");
   const [newPlayerName, setNewPlayerName] = useState("");
   const [message, setMessage] = useState("");
@@ -12,6 +13,7 @@ function App() {
   const [players, setPlayers] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
   const [turnStarted, setTurnStarted] = useState(false);
+  const [destination, setDestination] = useState("");
   const [suggestion, setSuggestion] = useState({
     character: "",
     weapon: "",
@@ -42,7 +44,7 @@ function App() {
 
   const fetchGameState = () => {
     axios
-      .get("http://localhost:5000/detailed-board")
+      .get("http://127.0.0.1:5000/detailed-board")
       .then((response) => {
         console.log("Response data:", response.data);
         setGameState(response.data);
@@ -54,11 +56,13 @@ function App() {
 
   const handleStartGame = () => {
     axios
-      .post("http://localhost:5000/start-game")
+      .post("http://127.0.0.1:5000/start-game")
       .then((response) => {
         setMessage(response.data.message);
         setGameStarted(true);
         console.log("Game started:", response.data);
+        //
+        fetchOptionTable();
         // Fetch the players and their cards
         fetchPlayersAndCards();
       })
@@ -71,9 +75,21 @@ function App() {
       });
   };
 
+  const fetchOptionTable = () => {
+    axios
+      .get("http://127.0.0.1:5000/api/optionTable") // Make sure this endpoint returns the option table
+      .then((response) => {
+        setOptionTable(response.data.optionTable);
+        console.log("Option table fetched:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching players and cards:", error);
+      });
+  };
+
   const fetchPlayersAndCards = () => {
     axios
-      .get("http://localhost:5000/api/players") // Make sure this endpoint returns players and their cards
+      .get("http://127.0.0.1:5000/api/players") // Make sure this endpoint returns players and their cards
       .then((response) => {
         setPlayers(response.data.players);
         setPlayerCards(response.data.cards);
@@ -91,7 +107,7 @@ function App() {
     }
 
     axios
-      .post("http://localhost:5000/api/players/turn", {
+      .post("http://127.0.0.1:5000/api/players/turn", {
         action: action,
         playerId: playerId,
       })
@@ -113,8 +129,9 @@ function App() {
 
   const handleMovePlayer = () => {
     axios
-      .get(`http://localhost:5000/api/players/move-options`, {
-        params: { playerId: playerId },
+      .post("http://127.0.0.1:5000/api/players/move", {
+        playerId: playerId,
+        destination: destination,
       })
       .then((response) => {
         const options = response.data.options.map((option) => option.direction);
@@ -135,7 +152,7 @@ function App() {
 
   const handleMove = (direction) => {
     axios
-      .post("http://localhost:5000/api/players/move", {
+      .post("http://127.0.0.1:5000/api/players/move", {
         playerId: playerId,
         direction: direction, // Use direction instead of destination
       })
@@ -162,7 +179,7 @@ function App() {
     }
 
     axios
-      .post("http://localhost:5000/api/players/suggestion", {
+      .post("http://127.0.0.1:5000/api/players/suggestion", {
         playerId: playerId,
         suggestion: suggestion,
       })
@@ -188,7 +205,7 @@ function App() {
     }
 
     axios
-      .post("http://localhost:5000/api/players/accusation", {
+      .post("http://127.0.0.1:5000/api/players/accusation", {
         playerId: playerId,
         accusation: accusation,
       })
@@ -228,7 +245,7 @@ function App() {
       ];
 
     axios
-      .post("http://localhost:5000/api/players/add", {
+      .post("http://127.0.0.1:5000/api/players/add", {
         playerName: newPlayerName,
         character: randomCharacter,
       })
@@ -462,6 +479,10 @@ function App() {
           </div>
           {gameStarted && (
             <div className="right-panel">
+
+              {/* Display the option table above the game board */}
+              {optionTable}
+
               <h2>Game Board</h2>
               {gameState ? (
                 <div className="board">
@@ -478,27 +499,29 @@ function App() {
               ) : (
                 <p>Loading game state...</p>
               )}
-              <div className="players-info">
-                <h3>Players and Their Cards</h3>
-                {players.length > 0 ? (
-                  <ul>
-                    {players.map((player, index) => (
-                      <li key={index}>
-                        <strong>{player.name}</strong>:{" "}
-                        {player.cards && player.cards.length > 0 ? (
-                          player.cards.map((card, cardIndex) => (
-                            <span key={cardIndex}>{card.name}</span>
-                          ))
-                        ) : (
-                          <span>No cards assigned</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p>No players found</p>
-                )}
-              </div>
+                <div className="players-info">
+                  <h3>Players and Their Cards</h3>
+                  {players.length > 0 ? (
+                    <ul className="player-list">
+                      {players.map((player, index) => (
+                        <li key={index} className="player-item">
+                          <strong>{player.name}</strong>
+                          {player.cards && player.cards.length > 0 ? (
+                            <div className="cards-list">
+                              {player.cards.map((card, cardIndex) => (
+                                <span key={cardIndex} className="card-item">{card.name}</span>
+                              ))}
+                            </div>
+                          ) : (
+                            <span className="no-cards">No cards assigned</span>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p>No players found</p>
+                  )}
+                </div>
             </div>
           )}
         </div>

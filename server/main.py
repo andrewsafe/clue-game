@@ -94,7 +94,7 @@ def main():
     game.add_player("Justin", "Plum")
     game.add_player("Elliot", "Mustard")
 
-    # Make a few character's to Cycle: TODO Implement into game sytem, or somehow tie characters to player.
+    # Make a few character's to Cycle: TODO Implement into game system, or somehow tie characters to player.
     characters_list = ["Scarlett", "Plum", "Green"]
     character_counter = 0
 
