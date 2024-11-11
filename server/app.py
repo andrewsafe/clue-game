@@ -130,12 +130,20 @@ def get_players():
     
     return jsonify({"players": players_info}), 200
 
+@app.route('/api/current_player', methods=['GET'])
+def get_current_player():
+    """
+    API endpoint to return current player information.
+    """
+    name = game_system.players[game_system.counter].name
+    
+    return jsonify({"current_player": name}), 200
 
 @app.route('/api/players/turn', methods=['POST'])
 def player_turn():
     data = request.json
     action = data.get("action")  # Either "start" or "end"
-    player_id = data.get("playerId")
+    player_id = game_system.players[game_system.counter].name
 
     if not action or not player_id:
         return jsonify({"error": "Missing action or playerId"}), 400
@@ -157,7 +165,7 @@ def player_turn():
 @app.route('/api/players/move-options', methods=['GET'])
 def get_move_options():
     try:
-        player_id = request.args.get("playerId")
+        player_id = game_system.players[game_system.counter].name
         print(f"Received player_id: {player_id}")
 
         if not player_id:
@@ -202,7 +210,7 @@ def get_move_options():
 @app.route('/api/players/suggestion', methods=['POST'])
 def player_suggestion():
     data = request.json
-    player_id = data.get("playerId")
+    player_id = game_system.players[game_system.counter].name
     suggestion_data = data.get("suggestion")
 
     print(f"{player_id} made a suggestion: {suggestion_data}.")
@@ -226,7 +234,7 @@ def player_suggestion():
 @app.route('/api/players/accusation', methods=['POST'])
 def player_accusation():
     data = request.json
-    player_id = data.get("playerId")
+    player_id = game_system.players[game_system.counter].name
     accusation_data = data.get("accusation")
 
     print(f"{player_id} made an accusation: {accusation_data}.")

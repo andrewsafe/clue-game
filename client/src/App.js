@@ -36,7 +36,7 @@ function App() {
   const [assignedCharacters, setAssignedCharacters] = useState([]);
   const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
-  axios.defaults.baseURL = "http://localhost:5000";
+  axios.defaults.baseURL = "http://127.0.0.1:5000";
 
   useEffect(() => {
     if (playerCreated && gameStarted) {
@@ -102,6 +102,18 @@ function App() {
       });
   };
 
+  const fetchCurrentPlayer = () => {
+    axios
+      .get("/api/current_player") // Make sure this endpoint returns players and their cards
+      .then((response) => {
+        setDisplayPlayerInfo(response.data.current_player);
+        console.log("Players and cards fetched:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching players and cards:", error);
+      });
+  };
+
   const handleTurn = (action) => {
     if (!playerId) {
       alert("Please enter a player ID");
@@ -117,6 +129,7 @@ function App() {
         setMessage(response.data.message);
         if (action === "start") {
           setTurnStarted(true);
+          fetchCurrentPlayer();
         } else if (action === "end") {
           setTurnStarted(false);
         }
@@ -256,6 +269,7 @@ function App() {
         setNewPlayerName("");
         setPlayerCreated(true);
         setPlayerId(newPlayerName); // Keep only the player name here
+        //fetchCurrentPlayer();
         setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`); // Set combined info for display
         setAssignedCharacters([...assignedCharacters, randomCharacter]); // Track assigned characters
       })
