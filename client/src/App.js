@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./App.css";
@@ -299,7 +300,7 @@ function App() {
           </button>
         </div>
       ) : (
-      // The web page that cycles through the game logic
+        // The web page that cycles through the game logic
         <div className="main-container">
           <div className="left-panel">
             <div className="player-info">
