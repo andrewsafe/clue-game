@@ -199,3 +199,12 @@ class BoardManager:
     def printCharLocations(self):
         print(self.character_locations)
         return
+
+    #Check room against all characters and return if occupied or not.
+    def is_room_occupied(self, room_name):
+        # Iterate through all character locations
+        for character, location in self.character_locations.items():
+            if location == room_name:
+                print("Room is currently occupied by" + character)
+                return True
+        return False

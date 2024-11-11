@@ -15,9 +15,9 @@ turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 #Add initial players for testing
-game_system.add_player("Andrew")
-game_system.add_player("Justin")
-game_system.add_player("Elliot")
+game_system.add_player("Andrew", "Scarlett")
+game_system.add_player("Justin", "Plum")
+game_system.add_player("Elliot", "Mustard")
 
 optionTable = """  
 ========================================================================
@@ -90,9 +90,9 @@ def main():
     #create the board object
     board_manager = BoardManager()
     # Add players to the game
-    game.add_player("Andrew")
-    game.add_player("Justin")
-    game.add_player("Elliot")
+    game.add_player("Andrew", "Scarlett")
+    game.add_player("Justin", "Plum")
+    game.add_player("Elliot", "Mustard")
 
     # Make a few character's to Cycle: TODO Implement into game sytem, or somehow tie characters to player.
     characters_list = ["Scarlett", "Plum", "Green"]
