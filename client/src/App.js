@@ -8,20 +8,72 @@ function App() {
   const [newPlayerName, setNewPlayerName] = useState("");
   const [message, setMessage] = useState("");
   const [playerCreated, setPlayerCreated] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [players, setPlayers] = useState([]);
+  const [playerCards, setPlayerCards] = useState([]);
+  const [turnStarted, setTurnStarted] = useState(false);
+  const [destination, setDestination] = useState("");
+  const [suggestion, setSuggestion] = useState({
+    character: "",
+    weapon: "",
+    room: "",
+  });
+  const [accusation, setAccusation] = useState({
+    character: "",
+    weapon: "",
+    room: "",
+  });
+  const [showMoveButtons, setShowMoveButtons] = useState(false);
 
   useEffect(() => {
-    if (playerCreated) {
-      axios
-        .get("http://localhost:5000/detailed-board")
-        .then((response) => {
-          console.log("Response data:", response.data);
-          setGameState(response.data);
-        })
-        .catch((error) => {
-          console.error("Error fetching game state:", error);
-        });
+    if (playerCreated && gameStarted) {
+      fetchGameState();
     }
-  }, [playerCreated]);
+  }, [playerCreated, gameStarted]);
+
+  const fetchGameState = () => {
+    axios
+      .get("http://localhost:5000/detailed-board")
+      .then((response) => {
+        console.log("Response data:", response.data);
+        setGameState(response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching game state:", error);
+      });
+  };
+
+  const handleStartGame = () => {
+    axios
+      .post("http://localhost:5000/start-game")
+      .then((response) => {
+        setMessage(response.data.message);
+        setGameStarted(true);
+        console.log("Game started:", response.data);
+        // Fetch the players and their cards
+        fetchPlayersAndCards();
+      })
+      .catch((error) => {
+        console.error("Error starting the game:", error);
+        setMessage(
+          "An error occurred: " +
+            (error.response?.data?.message || error.message)
+        );
+      });
+  };
+
+  const fetchPlayersAndCards = () => {
+    axios
+      .get("http://localhost:5000/api/players") // Make sure this endpoint returns players and their cards
+      .then((response) => {
+        setPlayers(response.data.players);
+        setPlayerCards(response.data.cards);
+        console.log("Players and cards fetched:", response.data);
+      })
+      .catch((error) => {
+        console.error("Error fetching players and cards:", error);
+      });
+  };
 
   const handleTurn = (action) => {
     if (!playerId) {
@@ -36,9 +88,118 @@ function App() {
       })
       .then((response) => {
         setMessage(response.data.message);
+        if (action === "start") {
+          setTurnStarted(true);
+        } else if (action === "end") {
+          setTurnStarted(false);
+        }
       })
       .catch((error) => {
         console.error("Error:", error);
+        setMessage(
+          "An error occurred: " + (error.response?.data?.error || error.message)
+        );
+      });
+  };
+
+  const handleMovePlayer = () => {
+    if (!destination) {
+      alert("Please enter a destination");
+      return;
+    }
+
+    axios
+      .post("http://localhost:5000/api/players/move", {
+        playerId: playerId,
+        destination: destination,
+      })
+      .then((response) => {
+        setMessage(response.data.message);
+        setDestination(""); // Clear the destination input after move
+        // Fetch updated game state
+        fetchGameState();
+
+        // Check if move was successful and show the buttons if needed
+        if (response.data.showMoveButtons) {
+          setShowMoveButtons(true);
+        }
+      })
+      .catch((error) => {
+        console.error("Error moving player:", error);
+        setMessage(
+          "An error occurred: " + (error.response?.data?.error || error.message)
+        );
+      });
+  };
+
+  const handleMove = (direction) => {
+    axios
+      .post("http://localhost:5000/api/players/move", {
+        playerId: playerId,
+        destination: direction, // Pass the direction as the destination
+      })
+      .then((response) => {
+        setMessage(response.data.message);
+        // Fetch updated game state if needed
+        fetchGameState();
+        setTimeout(() => {
+          handleTurn("end");
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error(`Error moving player ${direction}:`, error);
+        setMessage(
+          "An error occurred: " + (error.response?.data?.error || error.message)
+        );
+      });
+  };
+
+  const handleMakeSuggestion = () => {
+    if (!suggestion.character || !suggestion.weapon || !suggestion.room) {
+      alert("Please complete all suggestion fields");
+      return;
+    }
+
+    axios
+      .post("http://localhost:5000/api/players/suggestion", {
+        playerId: playerId,
+        suggestion: suggestion,
+      })
+      .then((response) => {
+        setMessage(response.data.message);
+        setSuggestion({ character: "", weapon: "", room: "" });
+        setTimeout(() => {
+          handleTurn("end");
+        }, 3000);
+      })
+      .catch((error) => {
+        console.error("Error making suggestion:", error);
+        setMessage(
+          "An error occurred: " + (error.response?.data?.error || error.message)
+        );
+      });
+  };
+
+  const handleMakeAccusation = () => {
+    if (!accusation.character || !accusation.weapon || !accusation.room) {
+      alert("Please complete all accusation fields");
+      return;
+    }
+
+    axios
+      .post("http://localhost:5000/api/players/accusation", {
+        playerId: playerId,
+        accusation: accusation,
+      })
+      .then((response) => {
+        setMessage(response.data.message);
+        setAccusation({ character: "", weapon: "", room: "" });
+        setTimeout(() => {
+          handleTurn("end");
+        }, 3000); // Adjust the delay as needed
+      })
+      .catch((error) => {
+        console.error("Error making accusation:", error);
         setMessage(
           "An error occurred: " + (error.response?.data?.error || error.message)
         );
@@ -68,7 +229,7 @@ function App() {
           error.response.data.error.includes("already exists")
         ) {
           setMessage(
-            `"${newPlayerName}" already exists. Continuing to the game.`
+            `${newPlayerName} already exists. Continuing to the game.`
           );
           setPlayerCreated(true);
           setPlayerId(newPlayerName);
@@ -94,7 +255,7 @@ function App() {
             onChange={(e) => setNewPlayerName(e.target.value)}
             className="input"
           />
-          <button onClick={handleAddPlayer} className="button">
+          <button onClick={handleAddPlayer} className="button start-button">
             Create Player
           </button>
         </div>
@@ -114,40 +275,218 @@ function App() {
                   <p>{message}</p>
                 </div>
               )}
-              <div className="turn-controls">
+              {!gameStarted ? (
                 <button
-                  onClick={() => handleTurn("start")}
+                  onClick={handleStartGame}
                   className="button start-button"
                 >
-                  Start Turn
+                  Start Game
                 </button>
-                <button
-                  onClick={() => handleTurn("end")}
-                  className="button end-button"
-                >
-                  End Turn
-                </button>
-              </div>
+              ) : (
+                <div className="turn-controls">
+                  {!showMoveButtons && (
+                    <>
+                      <button
+                        onClick={() => handleTurn("start")}
+                        className="button start-button"
+                      >
+                        Start Turn
+                      </button>
+                      <button
+                        onClick={() => handleTurn("end")}
+                        className="button end-button"
+                      >
+                        End Turn
+                      </button>
+                    </>
+                  )}
+                  {turnStarted && (
+                    <div>
+                      {!showMoveButtons ? (
+                        <div>
+                          <input
+                            type="text"
+                            placeholder="Enter destination"
+                            value={destination}
+                            onChange={(e) => setDestination(e.target.value)}
+                            className="input"
+                          />
+                          <button
+                            onClick={handleMovePlayer}
+                            className="button-blue"
+                          >
+                            Move Player
+                          </button>
+                        </div>
+                      ) : (
+                        <div>
+                          <button
+                            className="button-blue"
+                            onClick={() => handleMove("left")}
+                          >
+                            Left
+                          </button>
+                          <button
+                            className="button-blue"
+                            onClick={() => handleMove("right")}
+                          >
+                            Right
+                          </button>
+                          <button
+                            className="button-blue"
+                            onClick={() => handleMove("up")}
+                          >
+                            Up
+                          </button>
+                          <button
+                            className="button-blue"
+                            onClick={() => handleMove("down")}
+                          >
+                            Down
+                          </button>
+                        </div>
+                      )}
+                      {!showMoveButtons && (
+                        <>
+                          <br />
+                          <div>
+                            <input
+                              type="text"
+                              placeholder="Character"
+                              value={suggestion.character}
+                              onChange={(e) =>
+                                setSuggestion({
+                                  ...suggestion,
+                                  character: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Weapon"
+                              value={suggestion.weapon}
+                              onChange={(e) =>
+                                setSuggestion({
+                                  ...suggestion,
+                                  weapon: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Room"
+                              value={suggestion.room}
+                              onChange={(e) =>
+                                setSuggestion({
+                                  ...suggestion,
+                                  room: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <button
+                              onClick={handleMakeSuggestion}
+                              className="button-blue"
+                            >
+                              Make a Suggestion
+                            </button>
+                          </div>
+                          <br />
+                          <div className="accusation-controls">
+                            <input
+                              type="text"
+                              placeholder="Character"
+                              value={accusation.character}
+                              onChange={(e) =>
+                                setAccusation({
+                                  ...accusation,
+                                  character: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Weapon"
+                              value={accusation.weapon}
+                              onChange={(e) =>
+                                setAccusation({
+                                  ...accusation,
+                                  weapon: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <input
+                              type="text"
+                              placeholder="Room"
+                              value={accusation.room}
+                              onChange={(e) =>
+                                setAccusation({
+                                  ...accusation,
+                                  room: e.target.value,
+                                })
+                              }
+                              className="input input-small"
+                            />
+                            <button
+                              onClick={handleMakeAccusation}
+                              className="button-blue"
+                            >
+                              Make an Accusation
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
-          <div className="right-panel">
-            <h2>Game Board</h2>
-            {gameState ? (
-              <div className="board">
-                {gameState.map((row, rowIndex) => (
-                  <div key={rowIndex} className="board-row">
-                    {row.map((cell, cellIndex) => (
-                      <div key={cellIndex} className="board-cell">
-                        <pre>{cell}</pre>
-                      </div>
+          {gameStarted && (
+            <div className="right-panel">
+              <h2>Game Board</h2>
+              {gameState ? (
+                <div className="board">
+                  {gameState.map((row, rowIndex) => (
+                    <div key={rowIndex} className="board-row">
+                      {row.map((cell, cellIndex) => (
+                        <div key={cellIndex} className="board-cell">
+                          <pre>{cell}</pre>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p>Loading game state...</p>
+              )}
+              <div className="players-info">
+                <h3>Players and Their Cards</h3>
+                {players.length > 0 ? (
+                  <ul>
+                    {players.map((player, index) => (
+                      <li key={index}>
+                        <strong>{player.name}</strong>:{" "}
+                        {player.cards && player.cards.length > 0 ? (
+                          player.cards.map((card, cardIndex) => (
+                            <span key={cardIndex}>{card.name}</span>
+                          ))
+                        ) : (
+                          <span>No cards assigned</span>
+                        )}
+                      </li>
                     ))}
-                  </div>
-                ))}
+                  </ul>
+                ) : (
+                  <p>No players found</p>
+                )}
               </div>
-            ) : (
-              <p>Loading game state...</p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
     </div>

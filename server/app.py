@@ -51,11 +51,14 @@ cards = [[
 def get_detailed_board():
     board_state = board_manager.draw_detailed_board()
     return jsonify(board_state)
+    
 
 @app.route('/api/players/add', methods=['POST'])
 def add_player():
     data = request.json
+    print(f"Received data: {data}")  # Debugging line
     player_name = data.get("playerName")
+    print(f"Player name extracted: {player_name}")  # Debugging line
 
     if not player_name:
         return jsonify({"error": "Player name is required"}), 400
@@ -66,6 +69,23 @@ def add_player():
     game_system.add_player(player_name)
     print(f"{player_name} added to the game.")
     return jsonify({"message": f"{player_name} added successfully"}), 200
+
+
+@app.route('/api/players', methods=['GET'])
+def get_players():
+    """
+    API endpoint to return player information and their assigned cards.
+    """
+    players_info = []
+    for player in game_system.players:
+        player_cards = [card.to_dict() for card in player.cards]  # Assuming cards have a to_dict() method
+        players_info.append({
+            "id": player.id,
+            "name": player.name,
+            "cards": player_cards
+        })
+    
+    return jsonify({"players": players_info}), 200
 
 
 @app.route('/api/players/turn', methods=['POST'])
@@ -106,7 +126,13 @@ def player_move():
         message = game_system.move_player(player_id, destination)
         print(f"{player_id} moved to {destination}.")
 
-        return jsonify({"message": message}), 200
+        # Include a flag in the response to indicate the move was successful and buttons should be shown
+        response = {
+            "message": message,
+            "showMoveButtons": True  # New field for the frontend to check
+        }
+
+        return jsonify(response), 200
 
     except ValueError as ve:
         print(f"Error: {ve}")
@@ -115,23 +141,30 @@ def player_move():
         print(f"An unexpected error occurred: {e}")
         return jsonify({"error": "An unexpected error occurred"}), 500
 
+
 @app.route('/api/players/suggestion', methods=['POST'])
 def player_suggestion():
     data = request.json
     player_id = data.get("playerId")
     suggestion_data = data.get("suggestion")
 
-    print(f"Player {player_id} made a suggestion: {suggestion_data}.")
+    print(f"{player_id} made a suggestion: {suggestion_data}.")
+
+    # Ensure the values are integers
+    character_index = int(suggestion_data['character'])
+    weapon_index = int(suggestion_data['weapon'])
+    room_index = int(suggestion_data['room'])
 
     suggestion = Suggestion(
-        cards[0][suggestion_data['character'] - 1],
-        cards[1][suggestion_data['weapon'] - 1],
-        cards[2][suggestion_data['room'] - 1]
+        cards[0][character_index - 1],
+        cards[1][weapon_index - 1],
+        cards[2][room_index - 1]
     )
 
     message = game_system.make_suggestion(player_id, suggestion)
-    print(f"Suggestion processed for Player {player_id}.")
+    print(f"Suggestion processed for {player_id}.")
     return jsonify({"message": message}), 200
+
 
 @app.route('/api/players/accusation', methods=['POST'])
 def player_accusation():
@@ -139,21 +172,41 @@ def player_accusation():
     player_id = data.get("playerId")
     accusation_data = data.get("accusation")
 
-    print(f"Player {player_id} made an accusation: {accusation_data}.")
+    print(f"{player_id} made an accusation: {accusation_data}.")
+
+    character_index = int(accusation_data['character'])
+    weapon_index = int(accusation_data['weapon'])
+    room_index = int(accusation_data['room'])
 
     accusation = Accusation(
-        cards[0][accusation_data['character'] - 1],
-        cards[1][accusation_data['weapon'] - 1],
-        cards[2][accusation_data['room'] - 1]
+        cards[0][character_index - 1],
+        cards[1][weapon_index - 1],
+        cards[2][room_index - 1]
     )
 
     result = game_system.check_accusation(player_id, accusation)
     if result:
-        print(f"Player {player_id} has won the game.")
-        return jsonify({"message": "Correct accusation. Player wins!"}), 200
+        print(f"{player_id} has won the game.")
+        return jsonify({"message": "Correct accusation. {player_id} wins!"}), 200
     else:
-        print(f"Player {player_id} made an incorrect accusation.")
+        print(f"{player_id} made an incorrect accusation.")
         return jsonify({"message": "Incorrect accusation."}), 200
+    
+@app.route('/start-game', methods=['POST'])
+def start_game_api():
+    try:
+        game_system.start_game()
+        response = {
+            'status': 'success',
+            'message': 'Game started successfully. Cards have been distributed and shown to players.'
+        }
+    except Exception as e:
+        response = {
+            'status': 'error',
+            'message': str(e)
+        }
+
+    return jsonify(response)
     
 if __name__ == "__main__":
     app.run(debug=True)

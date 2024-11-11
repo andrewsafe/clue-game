@@ -11,6 +11,12 @@ class Suggestion:
         self.weapon = weapon
         self.room = room
 
+    def __str__(self):
+        """
+        Return a string representation of the Suggestion object.
+        """
+        return f"Character: {self.character}, Weapon: {self.weapon}, Room: {self.room}"
+
     def checkSuggestion(self, cards):
         """
         Check if the suggestion is correct.

@@ -53,6 +53,13 @@ class GameSystem:
         # Combine all cards into one list
         self.cards = suspects + weapons + rooms
 
+    def start_game(self):
+        """
+        Start the game by distributing cards and displaying player cards.
+        """
+        self.distribute_cards()
+        self.show_player_cards()
+
     def add_player(self, player_name):
     
         # Check if the player already exists
@@ -113,9 +120,3 @@ class GameSystem:
         for player in self.players:
             print(player)
 
-    def start_game(self):
-        """
-        Start the game by distributing cards and displaying player cards.
-        """
-        self.distribute_cards()
-        self.show_player_cards()

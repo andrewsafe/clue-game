@@ -27,3 +27,14 @@ class Card:
         if isinstance(other, Card):
             return self.name == other.name and self.category == other.category
         return False
+
+    def to_dict(self):
+        """
+        Convert the Card instance to a dictionary representation.
+
+        :return: A dictionary with card details.
+        """
+        return {
+            "name": self.name,
+            "category": self.category
+        }

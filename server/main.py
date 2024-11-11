@@ -76,6 +76,7 @@ def createSolution(cards):
     character = cards[random.randint(0, 5)]
     weapon = cards[6 + random.randint(0, 5)]
     room = cards[12 + random.randint(0, 8)]
+    print(f"Solution:  Character: {character}  Weapon: {weapon}  Room:  {room}") # ------------------------------------------------------------------
     solution = Solution(character, weapon, room)
     cards.remove(character)
     cards.remove(weapon)
