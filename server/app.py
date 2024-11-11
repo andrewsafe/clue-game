@@ -14,10 +14,12 @@ game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
-#Add initial players for testing
-game_system.add_player("Andrew")
-game_system.add_player("Justin")
-game_system.add_player("Elliot")
+# Add initial players for testing, using standardized character names
+game_system.add_player("Andrew", "Mustard", "Hall")
+game_system.add_player("Justin", "Plum", "Lounge")
+game_system.add_player("Elliot", "Peacock", "Library")
+
+
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
@@ -57,18 +59,21 @@ def get_detailed_board():
 def add_player():
     data = request.json
     print(f"Received data: {data}")  # Debugging line
+
     player_name = data.get("playerName")
-    print(f"Player name extracted: {player_name}")  # Debugging line
+    character = data.get("character")  # Get character from request body
 
-    if not player_name:
-        return jsonify({"error": "Player name is required"}), 400
+    if not player_name or not character:
+        return jsonify({"error": "Player name and character are required"}), 400
 
+    # Check if the player already exists by name
     if player_name in [player.name for player in game_system.players]:
         return jsonify({"error": f"{player_name} already exists"}), 400
 
-    game_system.add_player(player_name)
-    print(f"{player_name} added to the game.")
-    return jsonify({"message": f"{player_name} added successfully"}), 200
+    # Add player with name and character
+    message = game_system.add_player(player_name, character)
+    print(f"{player_name} added to the game as {character}.")
+    return jsonify({"message": message}), 200
 
 
 @app.route('/api/players', methods=['GET'])
@@ -109,27 +114,40 @@ def player_turn():
         return jsonify({"message": f"Turn ended. Next player: {next_player}"}), 200
     else:
         return jsonify({"error": "Invalid action"}), 400
-
-@app.route('/api/players/move', methods=['POST'])
-def player_move():
+    
+@app.route('/api/players/move-options', methods=['GET'])
+def get_move_options():
     try:
-        data = request.json
-        player_id = data.get("playerId")
-        destination = data.get("destination")
+        player_id = request.args.get("playerId")
+        print(f"Received player_id: {player_id}")
 
-        if not player_id or not destination:
-            return jsonify({"error": "Missing playerId or destination"}), 400
+        if not player_id:
+            return jsonify({"error": "Missing playerId"}), 400
 
-        print(f"{player_id} is moving to {destination}.")
+        # Find the player object in GameSystem
+        player = next((p for p in game_system.players if p.name == player_id), None)
+        if not player:
+            return jsonify({"error": "Player not found"}), 404
 
-        # Call the `move_player` method from `game_system`
-        message = game_system.move_player(player_id, destination)
-        print(f"{player_id} moved to {destination}.")
+        # Retrieve the player's character and current location
+        player_character = player.character
+        print(f"Player character found: {player_character}")
 
-        # Include a flag in the response to indicate the move was successful and buttons should be shown
+        # Get current location of the player on the board
+        current_location = board_manager.character_locations.get(player_character)
+        if not current_location:
+            return jsonify({"error": "Player's current location not found"}), 404
+        print(f"Player's current location: {current_location}")
+
+        # Get possible moves using `get_possible_moves`
+        directions = board_manager.get_possible_moves(player_character)
+        print(f"Possible directions: {directions}")
+
+        # Format the response with current location and options
+        formatted_directions = [{"direction": d[0], "destination": d[1]} for d in directions]
         response = {
-            "message": message,
-            "showMoveButtons": True  # New field for the frontend to check
+            "currentLocation": current_location,
+            "options": formatted_directions
         }
 
         return jsonify(response), 200

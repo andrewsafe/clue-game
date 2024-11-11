@@ -1,15 +1,19 @@
 class Player:
     _id_counter = 1  # Class-level counter for unique IDs
 
-    def __init__(self, name):
+    def __init__(self, name, character, position=None):
         """
         Initialize a Player instance.
 
         :param name: The name of the player.
+        :param character: The character associated with the player.
+        :param position: The starting position or room for the player.
         """
         self.id = Player._id_counter  # Assign a unique ID
         Player._id_counter += 1
         self.name = name
+        self.character = character  # Add character attribute
+        self.position = position  # Add position attribute
         self.cards = []  # List to hold the player's cards
 
     def add_card(self, card):
@@ -23,4 +27,4 @@ class Player:
         return [str(card) for card in self.cards]
 
     def __str__(self):
-        return f"Player: {self.name}, Cards: {', '.join(self.show_cards())}"
+        return f"Player: {self.name}, Character: {self.character}, Position: {self.position}, Cards: {', '.join(self.show_cards())}"

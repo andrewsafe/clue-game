@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./App.css"; // Ensure this file includes the CSS for layout and styling
+import "./App.css";
 
 function App() {
   const [gameState, setGameState] = useState(null);
@@ -12,7 +12,6 @@ function App() {
   const [players, setPlayers] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
   const [turnStarted, setTurnStarted] = useState(false);
-  const [destination, setDestination] = useState("");
   const [suggestion, setSuggestion] = useState({
     character: "",
     weapon: "",
@@ -24,6 +23,16 @@ function App() {
     room: "",
   });
   const [showMoveButtons, setShowMoveButtons] = useState(false);
+  const availableCharacters = [
+    "Colonel Mustard",
+    "Professor Plum",
+    "Mrs. Peacock",
+    "Miss Scarlett",
+    "Reverend Green",
+    "Mrs. White",
+  ];
+  const [assignedCharacters, setAssignedCharacters] = useState([]);
+  const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
   useEffect(() => {
     if (playerCreated && gameStarted) {
@@ -103,29 +112,21 @@ function App() {
   };
 
   const handleMovePlayer = () => {
-    if (!destination) {
-      alert("Please enter a destination");
-      return;
-    }
-
     axios
-      .post("http://localhost:5000/api/players/move", {
-        playerId: playerId,
-        destination: destination,
+      .get(`http://localhost:5000/api/players/move-options`, {
+        params: { playerId: playerId },
       })
       .then((response) => {
-        setMessage(response.data.message);
-        setDestination(""); // Clear the destination input after move
-        // Fetch updated game state
-        fetchGameState();
-
-        // Check if move was successful and show the buttons if needed
-        if (response.data.showMoveButtons) {
-          setShowMoveButtons(true);
-        }
+        const options = response.data.options.map((option) => option.direction);
+        setMessage(
+          `You are currently at ${
+            response.data.currentLocation
+          }. Available moves: ${options.join(", ")}`
+        );
+        setShowMoveButtons(true); // Show movement buttons
       })
       .catch((error) => {
-        console.error("Error moving player:", error);
+        console.error("Error fetching move options:", error);
         setMessage(
           "An error occurred: " + (error.response?.data?.error || error.message)
         );
@@ -136,12 +137,12 @@ function App() {
     axios
       .post("http://localhost:5000/api/players/move", {
         playerId: playerId,
-        destination: direction, // Pass the direction as the destination
+        direction: direction, // Use direction instead of destination
       })
       .then((response) => {
         setMessage(response.data.message);
-        // Fetch updated game state if needed
         fetchGameState();
+        setShowMoveButtons(false); // Hide movement buttons after move
         setTimeout(() => {
           handleTurn("end");
         }, 3000);
@@ -212,15 +213,32 @@ function App() {
       return;
     }
 
+    const unassignedCharacters = availableCharacters.filter(
+      (character) => !assignedCharacters.includes(character)
+    );
+
+    if (unassignedCharacters.length === 0) {
+      alert("All characters have been assigned. No more players can be added.");
+      return;
+    }
+
+    const randomCharacter =
+      unassignedCharacters[
+        Math.floor(Math.random() * unassignedCharacters.length)
+      ];
+
     axios
       .post("http://localhost:5000/api/players/add", {
         playerName: newPlayerName,
+        character: randomCharacter,
       })
       .then((response) => {
-        setMessage(response.data.message);
+        setMessage(`${response.data.message}`);
         setNewPlayerName("");
         setPlayerCreated(true);
-        setPlayerId(newPlayerName);
+        setPlayerId(newPlayerName); // Keep only the player name here
+        setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`); // Set combined info for display
+        setAssignedCharacters([...assignedCharacters, randomCharacter]); // Track assigned characters
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -233,6 +251,7 @@ function App() {
           );
           setPlayerCreated(true);
           setPlayerId(newPlayerName);
+          setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`);
         } else {
           setMessage(
             "An error occurred: " +
@@ -266,7 +285,7 @@ function App() {
               <h3>Current Player: </h3>
               <input
                 type="text"
-                value={playerId}
+                value={displayPlayerInfo}
                 readOnly
                 className="input uneditable"
               />
@@ -292,25 +311,18 @@ function App() {
                       >
                         Start Turn
                       </button>
-                      <button
+                      {/* <button
                         onClick={() => handleTurn("end")}
                         className="button end-button"
                       >
                         End Turn
-                      </button>
+                      </button> */}
                     </>
                   )}
                   {turnStarted && (
                     <div>
                       {!showMoveButtons ? (
                         <div>
-                          <input
-                            type="text"
-                            placeholder="Enter destination"
-                            value={destination}
-                            onChange={(e) => setDestination(e.target.value)}
-                            className="input"
-                          />
                           <button
                             onClick={handleMovePlayer}
                             className="button-blue"
@@ -320,6 +332,8 @@ function App() {
                         </div>
                       ) : (
                         <div>
+                          <p>{message}</p>{" "}
+                          {/* Show possible movement directions */}
                           <button
                             className="button-blue"
                             onClick={() => handleMove("left")}

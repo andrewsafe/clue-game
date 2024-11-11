@@ -60,16 +60,15 @@ class GameSystem:
         self.distribute_cards()
         self.show_player_cards()
 
-    def add_player(self, player_name):
-    
+    def add_player(self, player_name, character, starting_position="Hall"):
         # Check if the player already exists
         if player_name in [player.name for player in self.players]:
             return f"{player_name} already exists in the game."
 
-        # Create a new player and add to the game
-        new_player = Player(player_name)
+        # Create a new player with character and starting position
+        new_player = Player(player_name, character, position=starting_position)
         self.players.append(new_player)
-        return f"{player_name} added successfully."
+        return f"{player_name} added successfully as {character}."
 
 
     def start_turn(self, player_id):
@@ -77,7 +76,6 @@ class GameSystem:
             raise ValueError(f"{player_id} does not exist.")
         self.current_turn = player_id
         return f"{player_id}'s turn started."
-
 
     def end_turn(self, player_id):
         if player_id != self.current_turn:
@@ -119,4 +117,3 @@ class GameSystem:
         """
         for player in self.players:
             print(player)
-
