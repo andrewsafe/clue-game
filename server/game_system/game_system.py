@@ -15,6 +15,7 @@ class GameSystem:
         self.current_turn = None
         self.game_state = "ongoing"  # Example of tracking game state
         self.setup_cards()  # Setup the cards for the game
+        self.counter = 0
 
     def setup_cards(self):
         """

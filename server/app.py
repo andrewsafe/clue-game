@@ -71,9 +71,6 @@ def createSolution():
     character = game_system.cards[random.randint(0, 5)]
     weapon = game_system.cards[6 + random.randint(0, 5)]
     room = game_system.cards[12 + random.randint(0, 8)]
-    character = game_system.cards[0]
-    weapon = game_system.cards[6]
-    room = game_system.cards[12]
     print(f"Solution:  Character: {character}  Weapon: {weapon}  Room:  {room}")
     game_system.cards.remove(character)
     game_system.cards.remove(weapon)
@@ -150,8 +147,9 @@ def player_turn():
         print(f"Turn started for Player {player_id}.")
         return jsonify({"message": message}), 200
     elif action == "end":
-        next_player = game_system.end_turn(player_id)
-        print(f"Turn ended for Player {player_id}. Next player: {next_player}.")
+        game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.players) else 0
+        next_player = game_system.players[game_system.counter].name
+        print(f"Turn ended for Player {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
         return jsonify({"message": f"Turn ended. Next player: {next_player}"}), 200
     else:
         return jsonify({"error": "Invalid action"}), 400
@@ -247,7 +245,7 @@ def player_accusation():
     result = accusation.checkAccusation(solution)
     if result:
         print(f"{player_id} has won the game.")
-        return jsonify({"message": "Correct accusation. {player_id} wins!"}), 200
+        return jsonify({"message": f"Correct accusation. {player_id} wins!"}), 200
     else:
         print(f"{player_id} made an incorrect accusation.")
         return jsonify({"message": "Incorrect accusation."}), 200

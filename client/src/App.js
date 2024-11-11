@@ -279,6 +279,7 @@ function App() {
   };
 
   return (
+    // The start page to add a new player
     <div className="app">
       <h1>Clue Game</h1>
       {!playerCreated ? (
@@ -296,6 +297,7 @@ function App() {
           </button>
         </div>
       ) : (
+      // The web page that cycles through the game logic
         <div className="main-container">
           <div className="left-panel">
             <div className="player-info">
