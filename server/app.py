@@ -68,10 +68,13 @@ option_table = """
 
 def createSolution():
     # Create Solution for game
-    character = game_system.cards[random.randint(0, 5)]
-    weapon = game_system.cards[6 + random.randint(0, 5)]
-    room = game_system.cards[12 + random.randint(0, 8)]
-    print(f"Solution:  Character: {character}  Weapon: {weapon}  Room:  {room}")
+    c_index = random.randint(0, 5)
+    w_index = 6 + random.randint(0, 5)
+    r_index = 12 + random.randint(0, 8)
+    character = game_system.cards[c_index]
+    weapon = game_system.cards[w_index]
+    room = game_system.cards[r_index]
+    print(f"Solution:  Character: {c_index + 1} {character}  Weapon: {w_index - 5} {weapon}  Room: {r_index - 11} {room}")
     game_system.cards.remove(character)
     game_system.cards.remove(weapon)
     game_system.cards.remove(room)
@@ -135,7 +138,7 @@ def get_current_player():
     """
     API endpoint to return current player information.
     """
-    name = game_system.players[game_system.counter].name
+    name = game_system.active_players[game_system.counter].name
     
     return jsonify({"current_player": name}), 200
 
@@ -143,7 +146,8 @@ def get_current_player():
 def player_turn():
     data = request.json
     action = data.get("action")  # Either "start" or "end"
-    player_id = game_system.players[game_system.counter].name
+    player_id = game_system.active_players[game_system.counter].name
+    gameOver = False
 
     if not action or not player_id:
         return jsonify({"error": "Missing action or playerId"}), 400
@@ -152,20 +156,23 @@ def player_turn():
 
     if action == "start":
         message = game_system.start_turn(player_id)
+        if len(game_system.active_players) == 1:
+            message = f"Player {player_id} wins by default."
+            gameOver = True
         print(f"Turn started for Player {player_id}.")
-        return jsonify({"message": message}), 200
+        return jsonify({"message": message, "gameOver": gameOver}), 200
     elif action == "end":
-        game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.players) else 0
-        next_player = game_system.players[game_system.counter].name
+        game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.active_players) else 0
+        next_player = game_system.active_players[game_system.counter].name
         print(f"Turn ended for Player {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
-        return jsonify({"message": f"Turn ended. Next player: {next_player}"}), 200
+        return jsonify({"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver}), 200
     else:
         return jsonify({"error": "Invalid action"}), 400
     
 @app.route('/api/players/move-options', methods=['GET'])
 def get_move_options():
     try:
-        player_id = game_system.players[game_system.counter].name
+        player_id = game_system.active_players[game_system.counter].name
         print(f"Received player_id: {player_id}")
 
         if not player_id:
@@ -210,7 +217,7 @@ def get_move_options():
 @app.route('/api/players/suggestion', methods=['POST'])
 def player_suggestion():
     data = request.json
-    player_id = game_system.players[game_system.counter].name
+    player_id = game_system.active_players[game_system.counter].name
     suggestion_data = data.get("suggestion")
 
     print(f"{player_id} made a suggestion: {suggestion_data}.")
@@ -226,7 +233,15 @@ def player_suggestion():
         cards[2][room_index - 1]
     )
 
-    message = game_system.make_suggestion(player_id, suggestion)
+    message = ""
+    for player in game_system.players:
+        incorrect_cards = suggestion.checkSuggestion(player.cards)
+        if incorrect_cards:
+            incorrect_card = incorrect_cards[random.randint(0, len(incorrect_cards) - 1)]
+            message = f"Incorrect {incorrect_card.category} suggested.  Card: {incorrect_card.name}."
+            break
+    if message == "":
+        message = f"Suggestion with Suspect: {suggestion.character} Weapon: {suggestion.weapon} Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
     return jsonify({"message": message}), 200
 
@@ -234,7 +249,7 @@ def player_suggestion():
 @app.route('/api/players/accusation', methods=['POST'])
 def player_accusation():
     data = request.json
-    player_id = game_system.players[game_system.counter].name
+    player_id = game_system.active_players[game_system.counter].name
     accusation_data = data.get("accusation")
 
     print(f"{player_id} made an accusation: {accusation_data}.")
@@ -251,17 +266,22 @@ def player_accusation():
 
     #result = game_system.check_accusation(player_id, accusation)
     result = accusation.checkAccusation(solution)
+    print(f"Suspect: {accusation.character} Weapon: {accusation.weapon} Room: {accusation.room}")
+    print(f"Suspect: {solution.character} Weapon: {solution.weapon} Room: {solution.room}")
     if result:
         print(f"{player_id} has won the game.")
-        return jsonify({"message": f"Correct accusation. {player_id} wins!"}), 200
+        return jsonify({"message": f"Correct accusation. {player_id} wins!", "gameOver": True}), 200
     else:
+        game_system.active_players.pop(game_system.counter)
+        game_system.counter -= 1
         print(f"{player_id} made an incorrect accusation.")
-        return jsonify({"message": "Incorrect accusation."}), 200
+        return jsonify({"message": f"{player_id} made an incorrect accusation. {player_id} has lost.", "gameOver": False}), 200
     
 @app.route('/start-game', methods=['POST'])
 def start_game_api():
     try:
         game_system.start_game()
+        game_system.active_players = game_system.players.copy()
         response = {
             'status': 'success',
             'message': 'Game started successfully. Cards have been distributed and shown to players.'

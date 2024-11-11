@@ -11,6 +11,8 @@ function App() {
   const [message, setMessage] = useState("");
   const [playerCreated, setPlayerCreated] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [winner, setWinner] = useState("");
   const [players, setPlayers] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
   const [turnStarted, setTurnStarted] = useState(false);
@@ -134,6 +136,7 @@ function App() {
         } else if (action === "end") {
           setTurnStarted(false);
         }
+        setGameOver(response.data.gameOver)
       })
       .catch((error) => {
         console.error("Error:", error);
@@ -227,6 +230,7 @@ function App() {
       })
       .then((response) => {
         setMessage(response.data.message);
+        setGameOver(response.data.gameOver);
         setAccusation({ character: "", weapon: "", room: "" });
         setTimeout(() => {
           handleTurn("end");
@@ -313,7 +317,7 @@ function App() {
             Create Player
           </button>
         </div>
-      ) : (
+      ) : !gameOver ? (
         // The web page that cycles through the game logic
         <div className="main-container">
           <div className="left-panel">
@@ -544,6 +548,15 @@ function App() {
               </div>
             </div>
           )}
+        </div>
+      ) : (
+        <div className="game-over">
+          <h2>Game Over</h2>
+          <h3>Player {displayPlayerInfo} wins!</h3>
+          <p>Thank you for playing!</p>
+          {/* <button onClick={() => window.location.reload()} className="button">
+            Play Again
+          </button> */}
         </div>
       )}
     </div>

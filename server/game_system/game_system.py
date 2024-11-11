@@ -11,6 +11,7 @@ class GameSystem:
         Initialize a GameSystem instance.
         """
         self.players = []  # List to hold player instances
+        self.active_players = [] #List of active players who haven't lost (made incorrect accusations)
         self.cards = []    # List to hold all card instances
         self.current_turn = None
         self.game_state = "ongoing"  # Example of tracking game state
