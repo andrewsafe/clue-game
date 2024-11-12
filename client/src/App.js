@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
 import axios from "axios";
+import io from "socket.io-client";
 import "./App.css";
 
 function App() {
@@ -39,82 +40,102 @@ function App() {
   const [assignedCharacters, setAssignedCharacters] = useState([]);
   const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
-  axios.defaults.baseURL = "http://127.0.0.1:5000";
+  const socket = io("http://localhost:5000");
+
+  const handleDetailedBoard = (data) => {
+    console.log("Response data:", data);
+    setGameState(data);
+    socket.off("detailed_board_response", handleDetailedBoard);
+  };
 
   useEffect(() => {
     if (playerCreated && gameStarted) {
       fetchGameState();
     }
+    return () => {
+      socket.off("detailed_board_response", handleDetailedBoard);
+    };
   }, [playerCreated, gameStarted]);
 
   const fetchGameState = () => {
-    axios
-      .get("/detailed-board")
-      .then((response) => {
-        console.log("Response data:", response.data);
-        setGameState(response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching game state:", error);
-      });
+    socket.emit("detailed_board");
+
+    const handleDetailedBoard = (data) => {
+      console.log("Response data:", data);
+      setGameState(data);
+      socket.off("detailed_board_response", handleDetailedBoard);
+    };
+
+    socket.on("detailed_board_response", handleDetailedBoard);
   };
 
   const handleStartGame = () => {
-    axios
-      .post("/start-game")
-      .then((response) => {
-        setMessage(response.data.message);
+    socket.emit("start_game");
+
+    const handleStartGameResponse = (data) => {
+      if (data.status === "success") {
+        setMessage(data.message);
         setGameStarted(true);
-        console.log("Game started:", response.data);
-        //
+        console.log("Game started:", data);
         fetchOptionTable();
-        // Fetch the players and their cards
         fetchPlayersAndCards();
-      })
-      .catch((error) => {
-        console.error("Error starting the game:", error);
-        setMessage(
-          "An error occurred: " +
-            (error.response?.data?.message || error.message)
-        );
-      });
+      } else {
+        console.error("Error starting the game:", data.message);
+        setMessage("An error occurred: " + data.message);
+      }
+      socket.off("start_game_response", handleStartGameResponse);
+    };
+
+    socket.on("start_game_response", handleStartGameResponse);
   };
 
   const fetchOptionTable = () => {
-    axios
-      .get("/api/optionTable") // Make sure this endpoint returns the option table
-      .then((response) => {
-        setOptionTable(response.data.optionTable);
-        console.log("Option table fetched:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching players and cards:", error);
-      });
+    socket.emit("get_option_table");
+
+    const handleOptionTableResponse = (data) => {
+      if (data.error) {
+        console.error("Error fetching option table:", data.error);
+      } else {
+        setOptionTable(data.optionTable);
+        console.log("Option table fetched:", data);
+      }
+      socket.off("option_table_response", handleOptionTableResponse);
+    };
+
+    socket.on("option_table_response", handleOptionTableResponse);
   };
 
   const fetchPlayersAndCards = () => {
-    axios
-      .get("/api/players") // Make sure this endpoint returns players and their cards
-      .then((response) => {
-        setPlayers(response.data.players);
-        setPlayerCards(response.data.cards);
-        console.log("Players and cards fetched:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching players and cards:", error);
-      });
+    socket.emit("get_players");
+
+    const handleGetPlayersResponse = (data) => {
+      if (data.error) {
+        console.error("Error fetching players and cards:", data.error);
+      } else {
+        setPlayers(data.players);
+        setPlayerCards(data.players.map((player) => player.cards));
+        console.log("Players and cards fetched:", data);
+      }
+      socket.off("get_players_response", handleGetPlayersResponse);
+    };
+
+    socket.on("get_players_response", handleGetPlayersResponse);
   };
 
   const fetchCurrentPlayer = () => {
-    axios
-      .get("/api/current_player") // Make sure this endpoint returns players and their cards
-      .then((response) => {
-        setDisplayPlayerInfo(response.data.current_player);
-        console.log("Players and cards fetched:", response.data);
-      })
-      .catch((error) => {
-        console.error("Error fetching players and cards:", error);
-      });
+    socket.emit("get_current_player");
+
+    const handleCurrentPlayerResponse = (data) => {
+      if (data.error) {
+        console.error("Error fetching current player:", data.error);
+      } else {
+        setDisplayPlayerInfo(data.current_player);
+        console.log("Current player fetched:", data);
+      }
+      socket.off("get_current_player_response", handleCurrentPlayerResponse);
+    };
+
+    socket.on("get_current_player_response", handleCurrentPlayerResponse);
   };
 
   const handleTurn = (action) => {
@@ -123,72 +144,70 @@ function App() {
       return;
     }
 
-    axios
-      .post("/api/players/turn", {
-        action: action,
-        playerId: playerId,
-      })
-      .then((response) => {
-        setMessage(response.data.message);
+    socket.emit("player_turn", { action });
+
+    const handleTurnResponse = (data) => {
+      if (data.error) {
+        console.error("Error:", data.error);
+        setMessage("An error occurred: " + data.error);
+      } else {
+        setMessage(data.message);
         if (action === "start") {
           setTurnStarted(true);
           fetchCurrentPlayer();
         } else if (action === "end") {
           setTurnStarted(false);
         }
-        setGameOver(response.data.gameOver)
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        setMessage(
-          "An error occurred: " + (error.response?.data?.error || error.message)
-        );
-      });
+        setGameOver(data.gameOver);
+      }
+      socket.off("player_turn_response", handleTurnResponse);
+    };
+
+    socket.on("player_turn_response", handleTurnResponse);
   };
 
   const handleMovePlayer = () => {
-    axios
-      .post("/api/players/move", {
-        playerId: playerId,
-        destination: destination,
-      })
-      .then((response) => {
-        const options = response.data.options.map((option) => option.direction);
+    socket.emit("get_move_options");
+
+    const handleMoveOptionsResponse = (data) => {
+      if (data.error) {
+        console.error("Error fetching move options:", data.error);
+        setMessage("An error occurred: " + data.error);
+      } else {
+        const options = data.options.map((option) => option.direction);
         setMessage(
           `You are currently at ${
-            response.data.currentLocation
+            data.currentLocation
           }. Available moves: ${options.join(", ")}`
         );
+        setOptionTable(data.options);
         setShowMoveButtons(true); // Show movement buttons
-      })
-      .catch((error) => {
-        console.error("Error fetching move options:", error);
-        setMessage(
-          "An error occurred: " + (error.response?.data?.error || error.message)
-        );
-      });
+      }
+      socket.off("move_options_response", handleMoveOptionsResponse);
+    };
+
+    socket.on("move_options_response", handleMoveOptionsResponse);
   };
 
   const handleMove = (direction) => {
-    axios
-      .post("/api/players/move", {
-        playerId: playerId,
-        direction: direction,
-      })
-      .then((response) => {
-        setMessage(response.data.message);
+    socket.emit("move_player", { direction });
+
+    const handleMoveResponse = (data) => {
+      if (data.error) {
+        console.error(`Error moving player ${direction}:`, data.error);
+        setMessage("An error occurred: " + data.error);
+      } else {
+        setMessage(data.message);
         fetchGameState();
-        setShowMoveButtons(false); // Hide movement buttons after move
+        setShowMoveButtons(false);
         setTimeout(() => {
           handleTurn("end");
         }, 3000);
-      })
-      .catch((error) => {
-        console.error(`Error moving player ${direction}:`, error);
-        setMessage(
-          "An error occurred: " + (error.response?.data?.error || error.message)
-        );
-      });
+      }
+      socket.off("move_player_response", handleMoveResponse);
+    };
+
+    socket.on("move_player_response", handleMoveResponse);
   };
 
   const handleMakeSuggestion = () => {
@@ -197,24 +216,23 @@ function App() {
       return;
     }
 
-    axios
-      .post("/api/players/suggestion", {
-        playerId: playerId,
-        suggestion: suggestion,
-      })
-      .then((response) => {
-        setMessage(response.data.message);
+    socket.emit("player_suggestion", { suggestion });
+
+    const handleSuggestionResponse = (data) => {
+      if (data.error) {
+        console.error("Error making suggestion:", data.error);
+        setMessage("An error occurred: " + data.error);
+      } else {
+        setMessage(data.message);
         setSuggestion({ character: "", weapon: "", room: "" });
         setTimeout(() => {
           handleTurn("end");
         }, 3000);
-      })
-      .catch((error) => {
-        console.error("Error making suggestion:", error);
-        setMessage(
-          "An error occurred: " + (error.response?.data?.error || error.message)
-        );
-      });
+      }
+      socket.off("player_suggestion_response", handleSuggestionResponse);
+    };
+
+    socket.on("player_suggestion_response", handleSuggestionResponse);
   };
 
   const handleMakeAccusation = () => {
@@ -223,25 +241,24 @@ function App() {
       return;
     }
 
-    axios
-      .post("/api/players/accusation", {
-        playerId: playerId,
-        accusation: accusation,
-      })
-      .then((response) => {
-        setMessage(response.data.message);
-        setGameOver(response.data.gameOver);
+    socket.emit("player_accusation", { accusation });
+
+    const handleAccusationResponse = (data) => {
+      if (data.error) {
+        console.error("Error making accusation:", data.error);
+        setMessage("An error occurred: " + data.error);
+      } else {
+        setMessage(data.message);
+        setGameOver(data.gameOver);
         setAccusation({ character: "", weapon: "", room: "" });
         setTimeout(() => {
           handleTurn("end");
-        }, 3000); // Adjust the delay as needed
-      })
-      .catch((error) => {
-        console.error("Error making accusation:", error);
-        setMessage(
-          "An error occurred: " + (error.response?.data?.error || error.message)
-        );
-      });
+        }, 3000);
+      }
+      socket.off("player_accusation_response", handleAccusationResponse);
+    };
+
+    socket.on("player_accusation_response", handleAccusationResponse);
   };
 
   const handleAddPlayer = () => {
@@ -264,26 +281,15 @@ function App() {
         Math.floor(Math.random() * unassignedCharacters.length)
       ];
 
-    axios
-      .post("/api/players/add", {
-        playerName: newPlayerName,
-        character: randomCharacter,
-      })
-      .then((response) => {
-        setMessage(`${response.data.message}`);
-        setNewPlayerName("");
-        setPlayerCreated(true);
-        setPlayerId(newPlayerName); // Keep only the player name here
-        //fetchCurrentPlayer();
-        setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`); // Set combined info for display
-        setAssignedCharacters([...assignedCharacters, randomCharacter]); // Track assigned characters
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-        if (
-          error.response &&
-          error.response.data.error.includes("already exists")
-        ) {
+    socket.emit("add_player", {
+      playerName: newPlayerName,
+      character: randomCharacter,
+    });
+
+    const handleAddPlayerResponse = (data) => {
+      if (data.error) {
+        console.error("Error:", data.error);
+        if (data.error.includes("already exists")) {
           setMessage(
             `${newPlayerName} already exists. Continuing to the game.`
           );
@@ -291,12 +297,20 @@ function App() {
           setPlayerId(newPlayerName);
           setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`);
         } else {
-          setMessage(
-            "An error occurred: " +
-              (error.response?.data?.error || error.message)
-          );
+          setMessage("An error occurred: " + data.error);
         }
-      });
+      } else {
+        setMessage(`${data.message}`);
+        setNewPlayerName("");
+        setPlayerCreated(true);
+        setPlayerId(newPlayerName);
+        setDisplayPlayerInfo(`${newPlayerName} = ${randomCharacter}`);
+        setAssignedCharacters([...assignedCharacters, randomCharacter]);
+      }
+      socket.off("add_player_response", handleAddPlayerResponse);
+    };
+
+    socket.on("add_player_response", handleAddPlayerResponse);
   };
 
   return (

@@ -1,5 +1,8 @@
+import eventlet
+eventlet.monkey_patch()
 import random
 import json
+
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from flask_socketio import SocketIO, send, emit
@@ -12,8 +15,9 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'major_key123'
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
@@ -368,4 +372,4 @@ def start_game_api(data=None):  # Add 'data' as a placeholder argument
         })
     
 if __name__ == "__main__":
-    app.run(debug=True)
+    socketio.run(app, debug=True)
