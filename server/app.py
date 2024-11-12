@@ -403,6 +403,6 @@ def start_game_api(data=None):  # Add 'data' as a placeholder argument
         })
     
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
