@@ -1,8 +1,8 @@
 import random
 import json
 import os
-from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
+from flask import Flask, request, jsonify, Response
 from flask_socketio import SocketIO, send, emit
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
@@ -17,7 +17,8 @@ print("Server URL:", server_url)
 
 app = Flask(__name__)
 CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-socketio = SocketIO(app, cors_allowed_origins="")
+socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()

@@ -1,6 +1,5 @@
 /* eslint-disable no-unused-vars */
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import io from "socket.io-client";
 import "./App.css";
 
@@ -41,7 +40,9 @@ function App() {
   const [assignedCharacters, setAssignedCharacters] = useState([]);
   const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
-  const socket = io("https://clue-game-server.onrender.com/");
+  const socket = io("https://clue-game-server.onrender.com/", {
+    transports: ["websocket", "polling"],
+  });
 
   const handleDetailedBoard = (data) => {
     console.log("Response data:", data);
