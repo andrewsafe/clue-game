@@ -41,7 +41,7 @@ function App() {
   const [assignedCharacters, setAssignedCharacters] = useState([]);
   const [displayPlayerInfo, setDisplayPlayerInfo] = useState("");
 
-  const socket = io("http://localhost:5000");
+  const socket = io("https://clue-game-server.onrender.com/");
 
   const handleDetailedBoard = (data) => {
     console.log("Response data:", data);
@@ -394,15 +394,10 @@ function App() {
                             type="text"
                             placeholder="Move To"
                             value={move}
-                            onChange={(e) =>
-                              setMove(e.target.value)
-                            }
+                            onChange={(e) => setMove(e.target.value)}
                             className="input input-small"
                           />
-                          <button
-                            onClick={handleMove}
-                            className="button-blue"
-                          >
+                          <button onClick={handleMove} className="button-blue">
                             Move Player
                           </button>
                         </div>
