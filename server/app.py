@@ -1,5 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
 import random
 import json
 import os
@@ -15,9 +13,8 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'major_key123'
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
+socketio = SocketIO(app, cors_allowed_origins="*")
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
@@ -213,7 +210,7 @@ def player_turn(data):
         emit('player_turn_response', {"error": "Invalid action"})
     
 @socketio.on('get_move_options')
-def get_move_options(data=None):  # Add 'data' as a placeholder argument
+def get_move_options():  # Add 'data' as a placeholder argument
     try:
         # Retrieve the current player's ID
         player_id = game_system.players[game_system.counter].name
@@ -245,7 +242,7 @@ def get_move_options(data=None):  # Add 'data' as a placeholder argument
         print(f"Possible directions: {directions}")
 
         # Format the response with current location and options
-        formatted_directions = [{"direction": d[0], "destination": d[1]} for d in directions]
+        formatted_directions = [{"index": i, "direction": directions[0], "destination": directions[1]} for i in range(len(directions))]
         response = {
             "currentLocation": current_location,
             "options": formatted_directions
@@ -259,6 +256,42 @@ def get_move_options(data=None):  # Add 'data' as a placeholder argument
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         emit('move_options_response', {"error": "An unexpected error occurred"})
+
+
+@socketio.on('move_character')
+def handle_move_character(data):
+
+    character = data.get('character')
+    new_room = data.get('new_room')
+
+    if not character or not new_room:
+        emit('move_character_response', {
+            'status': 'error',
+            'message': 'Invalid data. "character" and "new_room" are required.'
+        })
+        return
+    
+    board_manager.moveCharToRoom(character, new_room)
+    updated_board = board_manager.draw_detailed_board()
+    emit('move_character_response', updated_board)
+
+# def is_room_occupied(self, room_name):
+#     # List to keep track of characters in the room
+#     occupants = []
+#     # Iterate through all character locations
+#     for character, location in self.character_locations.items():
+#         if location == room_name:
+#             occupants.append(character)
+#     if occupants:
+#         occupants_str = ', '.join(occupants)
+#         message = f"Room '{room_name}' is currently occupied by: {occupants_str}."
+#         logging.info(message)
+#         return {'status': 'occupied', 'message': message, 'occupants': occupants}
+#     else:
+#         message = f"Room '{room_name}' is not occupied."
+#         logging.info(message)
+#         return {'status': 'unoccupied', 'message': message, 'occupants': []}
+
 
 @socketio.on('player_suggestion')
 def player_suggestion(data):
@@ -337,8 +370,6 @@ def player_accusation(data):
     )
 
     result = accusation.checkAccusation(solution)
-    print(f"Accusation - Suspect: {accusation.character}, Weapon: {accusation.weapon}, Room: {accusation.room}")
-    print(f"Solution - Suspect: {solution.character}, Weapon: {solution.weapon}, Room: {solution.room}")
 
     if result:
         print(f"{player_id} has won the game.")
