@@ -13,6 +13,7 @@ function App() {
   const [playerCreated, setPlayerCreated] = useState(false);
   const [gameStarted, setGameStarted] = useState(false);
   const [gameOver, setGameOver] = useState(false);
+  const [move, setMove] = useState("");
   const [winner, setWinner] = useState("");
   const [players, setPlayers] = useState([]);
   const [playerCards, setPlayerCards] = useState([]);
@@ -386,31 +387,23 @@ function App() {
                         </div>
                       ) : (
                         <div>
+                          {/* Adds Movement text box and button */}
                           <p>{message}</p>{" "}
                           {/* Show possible movement directions */}
+                          <input
+                            type="text"
+                            placeholder="Move To"
+                            value={move}
+                            onChange={(e) =>
+                              setMove(e.target.value)
+                            }
+                            className="input input-small"
+                          />
                           <button
+                            onClick={handleMove}
                             className="button-blue"
-                            onClick={() => handleMove("left")}
                           >
-                            Left
-                          </button>
-                          <button
-                            className="button-blue"
-                            onClick={() => handleMove("right")}
-                          >
-                            Right
-                          </button>
-                          <button
-                            className="button-blue"
-                            onClick={() => handleMove("up")}
-                          >
-                            Up
-                          </button>
-                          <button
-                            className="button-blue"
-                            onClick={() => handleMove("down")}
-                          >
-                            Down
+                            Move Player
                           </button>
                         </div>
                       )}
