@@ -87,6 +87,10 @@ def createSolution():
 
 solution = createSolution()
 
+@app.route("/")  # Define the root route
+def home():
+    return "Your Flask app is live!"
+
 # --------------------------------------------------------------------
 @app.before_request 
 def basic_authentication():
