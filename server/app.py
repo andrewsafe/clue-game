@@ -12,6 +12,9 @@ from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
+server_url = os.environ.get("MAJOR_KEY117")
+print("Server URL:", server_url)
+
 app = Flask(__name__)
 CORS(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
