@@ -1,6 +1,8 @@
 import random
+import json
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
+from flask_socketio import SocketIO, send, emit
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
 from game_system.solution import Solution
@@ -11,6 +13,7 @@ from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
@@ -19,8 +22,6 @@ board_manager = BoardManager()
 game_system.add_player("Andrew", "Mustard", "Hall")
 game_system.add_player("Justin", "Plum", "Lounge")
 game_system.add_player("Elliot", "Peacock", "Library")
-
-
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
@@ -82,46 +83,68 @@ def createSolution():
 
 solution = createSolution()
 
-@app.before_request
+# --------------------------------------------------------------------
+@app.before_request 
 def basic_authentication():
     if request.method.lower() == 'options':
         return Response()
+# --------------------------------------------------------------------
 
-@app.route('/detailed-board', methods=['GET'])
-def get_detailed_board():
-    board_state = board_manager.draw_detailed_board()
-    return jsonify(board_state)
+@socketio.on('connect')
+def handle_connect():
+    print("Client connected")
+    send("Welcome to the WebSocket server!")  # Sends a welcome message to the client upon connection
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print("Client disconnected")
+
+@socketio.on('detailed_board')
+def detailed_board(data=None):
+    try:
+        board_state = board_manager.draw_detailed_board()
+        emit('detailed_board_response', board_state)
+    except Exception as e:
+        emit('detailed_board_response', {"error": str(e)})
     
+# --------------------------------------------------------------------
 @app.route('/api/optionTable', methods=['GET'])
 def get_option_table():
     return jsonify({"optionTable" : option_table})
+# --------------------------------------------------------------------
 
-@app.route('/api/players/add', methods=['POST'])
-def add_player():
-    data = request.json
-    print(f"Received data: {data}")  # Debugging line
+@socketio.on('add_player')
+def add_player(data):
+    # Debugging: log received data
+    print(f"Received data: {data}")
+
+    # Parse data as JSON if it is a string
+    if isinstance(data, str):
+        data = json.loads(data)
 
     player_name = data.get("playerName")
-    character = data.get("character")  # Get character from request body
+    character = data.get("character")
 
+    # Check if player name and character are provided
     if not player_name or not character:
-        return jsonify({"error": "Player name and character are required"}), 400
+        emit('add_player_response', {"error": "Player name and character are required"})
+        return
 
     # Check if the player already exists by name
     if player_name in [player.name for player in game_system.players]:
-        return jsonify({"error": f"{player_name} already exists"}), 400
+        emit('add_player_response', {"error": f"{player_name} already exists"})
+        return
 
     # Add player with name and character
     message = game_system.add_player(player_name, character)
     print(f"{player_name} added to the game as {character}.")
-    return jsonify({"message": message}), 200
+    emit('add_player_response', {"message": message})
 
-@app.route('/api/players', methods=['GET'])
+@socketio.on('get_players')
 def get_players():
     """
-    API endpoint to return player information and their assigned cards.
+    WebSocket event to return player information and their assigned cards.
     """
-
     players_info = []
     for player in game_system.players:
         player_cards = [card.to_dict() for card in player.cards]  # Assuming cards have a to_dict() method
@@ -131,26 +154,38 @@ def get_players():
             "cards": player_cards
         })
     
-    return jsonify({"players": players_info}), 200
+    # Emit the player information back to the client
+    emit('get_players_response', {"players": players_info})
 
-@app.route('/api/current_player', methods=['GET'])
-def get_current_player():
+@socketio.on('get_current_player')
+def get_current_player(data=None):  # Add 'data' as a default argument
     """
-    API endpoint to return current player information.
+    WebSocket event to return current player information.
     """
-    name = game_system.active_players[game_system.counter].name
-    
-    return jsonify({"current_player": name}), 200
+    try:
+        name = game_system.players[game_system.counter].name
+        emit('get_current_player_response', {"current_player": name})
+    except IndexError:
+        emit('get_current_player_response', {"error": "No current player found"})
 
-@app.route('/api/players/turn', methods=['POST'])
-def player_turn():
-    data = request.json
+@socketio.on('player_turn')
+def player_turn(data):
+    # Parse data as JSON if it is a string
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError as e:
+            print("JSONDecodeError:", e)
+            emit('player_turn_response', {"error": "Invalid JSON format"})
+            return
+
     action = data.get("action")  # Either "start" or "end"
     player_id = game_system.active_players[game_system.counter].name
     gameOver = False
 
     if not action or not player_id:
-        return jsonify({"error": "Missing action or playerId"}), 400
+        emit('player_turn_response', {"error": "Missing action or playerId"})
+        return
 
     print(f"Player {player_id} is trying to {action} their turn.")
 
@@ -160,28 +195,35 @@ def player_turn():
             message = f"Player {player_id} wins by default."
             gameOver = True
         print(f"Turn started for Player {player_id}.")
-        return jsonify({"message": message, "gameOver": gameOver}), 200
+        emit('player_turn_response', {"message": message, "gameOver": gameOver})
     elif action == "end":
+        if len(game_system.active_players) == 0:
+            emit('player_turn_response', {"error": "No active players in the game.", "gameOver": True})
+            return
+
         game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.active_players) else 0
         next_player = game_system.active_players[game_system.counter].name
         print(f"Turn ended for Player {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
-        return jsonify({"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver}), 200
+        emit('player_turn_response', {"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver})
     else:
-        return jsonify({"error": "Invalid action"}), 400
+        emit('player_turn_response', {"error": "Invalid action"})
     
-@app.route('/api/players/move-options', methods=['GET'])
-def get_move_options():
+@socketio.on('get_move_options')
+def get_move_options(data=None):  # Add 'data' as a placeholder argument
     try:
-        player_id = game_system.active_players[game_system.counter].name
+        # Retrieve the current player's ID
+        player_id = game_system.players[game_system.counter].name
         print(f"Received player_id: {player_id}")
 
         if not player_id:
-            return jsonify({"error": "Missing playerId"}), 400
+            emit('move_options_response', {"error": "Missing playerId"})
+            return
 
         # Find the player object in GameSystem
         player = next((p for p in game_system.players if p.name == player_id), None)
         if not player:
-            return jsonify({"error": "Player not found"}), 404
+            emit('move_options_response', {"error": "Player not found"})
+            return
 
         # Retrieve the player's character and current location
         player_character = player.character
@@ -190,7 +232,8 @@ def get_move_options():
         # Get current location of the player on the board
         current_location = board_manager.character_locations.get(player_character)
         if not current_location:
-            return jsonify({"error": "Player's current location not found"}), 404
+            emit('move_options_response', {"error": "Player's current location not found"})
+            return
         print(f"Player's current location: {current_location}")
 
         # Get possible moves using `get_possible_moves`
@@ -204,28 +247,40 @@ def get_move_options():
             "options": formatted_directions
         }
 
-        return jsonify(response), 200
+        emit('move_options_response', response)
 
     except ValueError as ve:
         print(f"Error: {ve}")
-        return jsonify({"error": str(ve)}), 404
+        emit('move_options_response', {"error": str(ve)})
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        return jsonify({"error": "An unexpected error occurred"}), 500
+        emit('move_options_response', {"error": "An unexpected error occurred"})
 
+@socketio.on('player_suggestion')
+def player_suggestion(data):
+    # Parse data as JSON if it is a string
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError as e:
+            print("JSONDecodeError:", e)
+            emit('player_suggestion_response', {"error": "Invalid JSON format"})
+            return
 
-@app.route('/api/players/suggestion', methods=['POST'])
-def player_suggestion():
-    data = request.json
     player_id = game_system.active_players[game_system.counter].name
     suggestion_data = data.get("suggestion")
 
     print(f"{player_id} made a suggestion: {suggestion_data}.")
 
     # Ensure the values are integers
-    character_index = int(suggestion_data['character'])
-    weapon_index = int(suggestion_data['weapon'])
-    room_index = int(suggestion_data['room'])
+    try:
+        character_index = int(suggestion_data['character'])
+        weapon_index = int(suggestion_data['weapon'])
+        room_index = int(suggestion_data['room'])
+    except (ValueError, KeyError, TypeError) as e:
+        print("Error parsing suggestion data:", e)
+        emit('player_suggestion_response', {"error": "Invalid suggestion data"})
+        return
 
     suggestion = Suggestion(
         cards[0][character_index - 1],
@@ -238,25 +293,38 @@ def player_suggestion():
         incorrect_cards = suggestion.checkSuggestion(player.cards)
         if incorrect_cards:
             incorrect_card = incorrect_cards[random.randint(0, len(incorrect_cards) - 1)]
-            message = f"Incorrect {incorrect_card.category} suggested.  Card: {incorrect_card.name}."
+            message = f"Incorrect {incorrect_card.category} suggested. Card: {incorrect_card.name}."
             break
     if message == "":
-        message = f"Suggestion with Suspect: {suggestion.character} Weapon: {suggestion.weapon} Room: {suggestion.room} is correct."
+        message = f"Suggestion with Suspect: {suggestion.character}, Weapon: {suggestion.weapon}, Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
-    return jsonify({"message": message}), 200
+    emit('player_suggestion_response', {"message": message})
 
+@socketio.on('player_accusation')
+def player_accusation(data):
+    # Parse data as JSON if it is a string
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except json.JSONDecodeError as e:
+            print("JSONDecodeError:", e)
+            emit('player_accusation_response', {"error": "Invalid JSON format"})
+            return
 
-@app.route('/api/players/accusation', methods=['POST'])
-def player_accusation():
-    data = request.json
     player_id = game_system.active_players[game_system.counter].name
     accusation_data = data.get("accusation")
 
     print(f"{player_id} made an accusation: {accusation_data}.")
 
-    character_index = int(accusation_data['character'])
-    weapon_index = int(accusation_data['weapon'])
-    room_index = int(accusation_data['room'])
+    # Ensure the values are integers
+    try:
+        character_index = int(accusation_data['character'])
+        weapon_index = int(accusation_data['weapon'])
+        room_index = int(accusation_data['room'])
+    except (ValueError, KeyError, TypeError) as e:
+        print("Error parsing accusation data:", e)
+        emit('player_accusation_response', {"error": "Invalid accusation data"})
+        return
 
     accusation = Accusation(
         cards[0][character_index - 1],
@@ -264,35 +332,40 @@ def player_accusation():
         cards[2][room_index - 1]
     )
 
-    #result = game_system.check_accusation(player_id, accusation)
     result = accusation.checkAccusation(solution)
-    print(f"Suspect: {accusation.character} Weapon: {accusation.weapon} Room: {accusation.room}")
-    print(f"Suspect: {solution.character} Weapon: {solution.weapon} Room: {solution.room}")
+    print(f"Accusation - Suspect: {accusation.character}, Weapon: {accusation.weapon}, Room: {accusation.room}")
+    print(f"Solution - Suspect: {solution.character}, Weapon: {solution.weapon}, Room: {solution.room}")
+
     if result:
         print(f"{player_id} has won the game.")
-        return jsonify({"message": f"Correct accusation. {player_id} wins!", "gameOver": True}), 200
+        emit('player_accusation_response', {"message": f"Correct accusation. {player_id} wins!", "gameOver": True})
     else:
+        # Remove the player from active players
         game_system.active_players.pop(game_system.counter)
         game_system.counter -= 1
-        print(f"{player_id} made an incorrect accusation.")
-        return jsonify({"message": f"{player_id} made an incorrect accusation. {player_id} has lost.", "gameOver": False}), 200
-    
-@app.route('/start-game', methods=['POST'])
-def start_game_api():
+        print(f"{player_id} made an incorrect accusation and has been removed from the game.")
+        emit('player_accusation_response', {
+            "message": f"{player_id} made an incorrect accusation and has lost.",
+            "gameOver": False
+        })
+
+@socketio.on('start_game')
+def start_game_api(data=None):  # Add 'data' as a placeholder argument
     try:
+        # Attempt to start the game
         game_system.start_game()
         game_system.active_players = game_system.players.copy()
-        response = {
+        # Emit a success response
+        emit('start_game_response', {
             'status': 'success',
             'message': 'Game started successfully. Cards have been distributed and shown to players.'
-        }
+        })
     except Exception as e:
-        response = {
+        # Emit an error response if an exception occurs
+        emit('start_game_response', {
             'status': 'error',
             'message': str(e)
-        }
-
-    return jsonify(response)
+        })
     
 if __name__ == "__main__":
     app.run(debug=True)
