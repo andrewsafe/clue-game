@@ -24,9 +24,9 @@ turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 # Add initial players for testing, using standardized character names
-game_system.add_player("Andrew", "Mustard", "Hall")
-game_system.add_player("Justin", "Plum", "Lounge")
-game_system.add_player("Elliot", "Peacock", "Library")
+# game_system.add_player("Andrew", "Mustard", "Hall")
+# game_system.add_player("Justin", "Plum", "Lounge")
+# game_system.add_player("Elliot", "Peacock", "Library")
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
