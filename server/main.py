@@ -8,6 +8,7 @@ from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 import random
+import json
 
 app = Flask(__name__)
 game_system = GameSystem()
@@ -111,7 +112,7 @@ def main():
 
     # Simulate a few turns
     for _ in range(len(game.players)):
-        board_manager.draw_detailed_board()
+        board_manager.print_JSON_board(board_manager.draw_detailed_board())
         current_player = turn_manager.current_player()
         print(f"It's {current_player.name} (" + characters_list[character_counter] + ")'s turn.")
         # Simulate some action (like making a suggestion or moving)
@@ -133,15 +134,21 @@ def main():
             #Start movement flagged loop
             while(exit_flag == False):
                 input_direction = int(input("Move Option (Enter number): ")) - 1
+                selected_move = possible_directions[input_direction]
+                direction, destination_room = selected_move  # Unpack the tuple
+                selected_move
+
                 if input_direction >= 0 & input_direction < len(possible_directions):
-                    selected_move = possible_directions[input_direction]
-                    direction, destination_room = selected_move  # Unpack the tuple
-                    board_manager.moveCharToRoom(characters_list[character_counter], destination_room)
-                    board_manager.printCharLocations()
-                    exit_flag = True
+                    if(board_manager.is_room_occupied(destination_room) == False):
+                        board_manager.moveCharToRoom(characters_list[character_counter], destination_room)
+                        board_manager.printCharLocations()
+                        exit_flag = True
                 else:
                     print("Move invalid!")
-        
+            #print updated board
+            board_manager.print_JSON_board(board_manager.draw_detailed_board())
+
+            
         # Make a Suggestion
         elif action == "2":
             print(optionTable)

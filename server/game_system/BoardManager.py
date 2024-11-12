@@ -208,3 +208,24 @@ class BoardManager:
                 print("Room is currently occupied by" + character)
                 return True
         return False
+    
+    def print_JSON_board(self, json_grid):
+        # Determine the number of lines per cell (CELL_HEIGHT)
+        CELL_HEIGHT = 5  # Must match the value in draw_detailed_board()
+        # Iterate through each row in the grid
+        for row in json_grid:
+            # Initialize a list to hold each line of the row
+            row_lines = ['' for _ in range(CELL_HEIGHT)]
+            
+            # Iterate through each cell in the row
+            for cell in row:
+                cell_lines = cell.split('\n')
+                for i in range(CELL_HEIGHT):
+                    row_lines[i] += cell_lines[i].ljust(15) + ' | '  # Adjust padding as needed
+            
+            # Print each line of the row
+            for line in row_lines:
+                print(line)
+            
+            # Print a separator after each row
+            print('-' * (len(row) * (15 + 3)))  # 15 for CELL_WIDTH, 3 for ' | '
