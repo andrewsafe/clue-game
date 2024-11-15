@@ -12,21 +12,20 @@ from game_system.suggestion import Suggestion
 from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
-server_url = os.environ.get("MAJOR_KEY117")
-print("Server URL:", server_url)
-
 app = Flask(__name__)
-CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+# CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
+# socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+CORS(app, origins=["http://192.168.1.22:3001"])
+socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 # Add initial players for testing, using standardized character names
-# game_system.add_player("Andrew", "Mustard", "Hall")
-# game_system.add_player("Justin", "Plum", "Lounge")
-# game_system.add_player("Elliot", "Peacock", "Library")
+game_system.add_player("Andrew", "Mustard", "Hall")
+game_system.add_player("Justin", "Plum", "Lounge")
+game_system.add_player("Elliot", "Peacock", "Library")
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
@@ -112,9 +111,9 @@ def handle_disconnect():
 def detailed_board(data=None):
     try:
         board_state = board_manager.draw_detailed_board()
-        emit('detailed_board_response', board_state)
+        emit('board_response', board_state)
     except Exception as e:
-        emit('detailed_board_response', {"error": str(e)})
+        emit('board_response', {"error": str(e)})
     
 # --------------------------------------------------------------------
 @app.route('/api/optionTable', methods=['GET'])
@@ -145,7 +144,8 @@ def add_player(data):
         return
 
     # Add player with name and character
-    message = game_system.add_player(player_name, character)
+    location = board_manager.character_locations[character]
+    message = game_system.add_player(player_name, character, location)
     print(f"{player_name} added to the game as {character}.")
     emit('add_player_response', {"message": message})
 
@@ -164,7 +164,7 @@ def get_players():
         })
     
     # Emit the player information back to the client
-    emit('get_players_response', {"players": players_info})
+    emit('return_players', {"players": players_info})
 
 @socketio.on('get_current_player')
 def get_current_player(data=None):  # Add 'data' as a default argument
@@ -216,22 +216,33 @@ def player_turn(data):
         emit('player_turn_response', {"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver})
     else:
         emit('player_turn_response', {"error": "Invalid action"})
-    
-@socketio.on('get_move_options')
-def get_move_options():  # Add 'data' as a placeholder argument
+
+@socketio.on('end_turn')
+def end_turn():
+    # Move to the next player
+    game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
+    next_player = game_system.active_players[game_system.counter].name
+    if len(game_system.active_players) == 1:
+        emit('game_over', {
+            'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
+            'winner': next_player               
+        })
+    emit('next_turn', {'current_player': next_player, 'character': game_system.active_players[game_system.counter].character}, broadcast=True)
+
+@socketio.on('get_moves')
+def get_moves(current_player):  # Add 'data' as a placeholder argument
     try:
         # Retrieve the current player's ID
-        player_id = game_system.players[game_system.counter].name
-        print(f"Received player_id: {player_id}")
+        print(f"Received player_id: {current_player}")
 
-        if not player_id:
-            emit('move_options_response', {"error": "Missing playerId"})
+        if not current_player:
+            emit('move_options', {"error": "Missing playerId"})
             return
 
         # Find the player object in GameSystem
-        player = next((p for p in game_system.players if p.name == player_id), None)
+        player = next((p for p in game_system.active_players if p.name == current_player), None)
         if not player:
-            emit('move_options_response', {"error": "Player not found"})
+            emit('move_options', {"error": "Player not found"})
             return
 
         # Retrieve the player's character and current location
@@ -241,7 +252,7 @@ def get_move_options():  # Add 'data' as a placeholder argument
         # Get current location of the player on the board
         current_location = board_manager.character_locations.get(player_character)
         if not current_location:
-            emit('move_options_response', {"error": "Player's current location not found"})
+            emit('move_options', {"error": "Player's current location not found"})
             return
         print(f"Player's current location: {current_location}")
 
@@ -250,38 +261,38 @@ def get_move_options():  # Add 'data' as a placeholder argument
         print(f"Possible directions: {directions}")
 
         # Format the response with current location and options
-        formatted_directions = [{"index": i, "direction": directions[0], "destination": directions[1]} for i in range(len(directions))]
+        moves = []
+        for i in range(len(directions)):
+            moves.append(directions[i][1])
         response = {
             "currentLocation": current_location,
-            "options": formatted_directions
+            "moves": moves
         }
 
-        emit('move_options_response', response)
+        emit('move_options', response)
 
     except ValueError as ve:
         print(f"Error: {ve}")
-        emit('move_options_response', {"error": str(ve)})
+        emit('move_options', {"error": str(ve)})
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-        emit('move_options_response', {"error": "An unexpected error occurred"})
+        emit('move_options', {"error": "An unexpected error occurred"})
 
+@socketio.on('make_move')
+def make_move(data):
 
-@socketio.on('move_character')
-def handle_move_character(data):
+    character = game_system.active_players[game_system.counter].character
 
-    character = data.get('character')
-    new_room = data.get('new_room')
-
-    if not character or not new_room:
+    if not character or not data:
         emit('move_character_response', {
             'status': 'error',
             'message': 'Invalid data. "character" and "new_room" are required.'
         })
         return
     
-    board_manager.moveCharToRoom(character, new_room)
+    board_manager.moveCharToRoom(character, data)
     updated_board = board_manager.draw_detailed_board()
-    emit('move_character_response', updated_board)
+    emit('move_character_response', {"board": updated_board})
 
 # def is_room_occupied(self, room_name):
 #     # List to keep track of characters in the room
@@ -301,30 +312,29 @@ def handle_move_character(data):
 #         return {'status': 'unoccupied', 'message': message, 'occupants': []}
 
 
-@socketio.on('player_suggestion')
-def player_suggestion(data):
+@socketio.on('make_suggestion')
+def make_suggestion(data):
     # Parse data as JSON if it is a string
     if isinstance(data, str):
         try:
             data = json.loads(data)
         except json.JSONDecodeError as e:
             print("JSONDecodeError:", e)
-            emit('player_suggestion_response', {"error": "Invalid JSON format"})
+            emit('suggestion_made', {"error": "Invalid JSON format"})
             return
-
+        
     player_id = game_system.active_players[game_system.counter].name
-    suggestion_data = data.get("suggestion")
 
-    print(f"{player_id} made a suggestion: {suggestion_data}.")
+    print(f"{player_id} made a suggestion: {data}.")
 
     # Ensure the values are integers
     try:
-        character_index = int(suggestion_data['character'])
-        weapon_index = int(suggestion_data['weapon'])
-        room_index = int(suggestion_data['room'])
+        character_index = int(data['character'])
+        weapon_index = int(data['weapon'])
+        room_index = int(data['room'])
     except (ValueError, KeyError, TypeError) as e:
         print("Error parsing suggestion data:", e)
-        emit('player_suggestion_response', {"error": "Invalid suggestion data"})
+        emit('suggestion_made', {"error": "Invalid suggestion data"})
         return
 
     suggestion = Suggestion(
@@ -343,74 +353,69 @@ def player_suggestion(data):
     if message == "":
         message = f"Suggestion with Suspect: {suggestion.character}, Weapon: {suggestion.weapon}, Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
-    emit('player_suggestion_response', {"message": message})
+    emit('suggestion_made', {"message": message})
 
-@socketio.on('player_accusation')
-def player_accusation(data):
+@socketio.on('make_accusation')
+def make_accusation(data):
     # Parse data as JSON if it is a string
     if isinstance(data, str):
         try:
             data = json.loads(data)
         except json.JSONDecodeError as e:
             print("JSONDecodeError:", e)
-            emit('player_accusation_response', {"error": "Invalid JSON format"})
+            emit('accusation_made', {"error": "Invalid JSON format"})
             return
 
     player_id = game_system.active_players[game_system.counter].name
-    accusation_data = data.get("accusation")
 
-    print(f"{player_id} made an accusation: {accusation_data}.")
+    print(f"{player_id} made an accusation: {data}.")
 
     # Ensure the values are integers
-    try:
-        character_index = int(accusation_data['character'])
-        weapon_index = int(accusation_data['weapon'])
-        room_index = int(accusation_data['room'])
-    except (ValueError, KeyError, TypeError) as e:
-        print("Error parsing accusation data:", e)
-        emit('player_accusation_response', {"error": "Invalid accusation data"})
-        return
+
+    suspect = cards[0][int(data['character']) - 1]
+    weapon = cards[1][int(data['weapon']) - 1]
+    room = cards[2][int(data['room']) - 1]
 
     accusation = Accusation(
-        cards[0][character_index - 1],
-        cards[1][weapon_index - 1],
-        cards[2][room_index - 1]
+        suspect,
+        weapon,
+        room
     )
 
     result = accusation.checkAccusation(solution)
 
     if result:
         print(f"{player_id} has won the game.")
-        emit('player_accusation_response', {"message": f"Correct accusation. {player_id} wins!", "gameOver": True})
+        emit('game_over', {"message": f"Correct accusation of Suspect: {suspect}   Weapon: {weapon}   Room: {room}. {player_id} wins!", 
+                           "winner": player_id})
     else:
         # Remove the player from active players
         game_system.active_players.pop(game_system.counter)
         game_system.counter -= 1
         print(f"{player_id} made an incorrect accusation and has been removed from the game.")
-        emit('player_accusation_response', {
-            "message": f"{player_id} made an incorrect accusation and has lost.",
-            "gameOver": False
+        emit('accusation_made', {
+            "message": f"{player_id} made an incorrect accusation and has lost."
         })
 
 @socketio.on('start_game')
-def start_game_api(data=None):  # Add 'data' as a placeholder argument
+def start_game(data=None):  # Add 'data' as a placeholder argument
     try:
         # Attempt to start the game
         game_system.start_game()
         game_system.active_players = game_system.players.copy()
         # Emit a success response
-        emit('start_game_response', {
-            'status': 'success',
-            'message': 'Game started successfully. Cards have been distributed and shown to players.'
-        })
+        emit('game_started', {
+            'current_player': game_system.active_players[game_system.counter].name, 
+            'character': game_system.active_players[game_system.counter].character,
+            'message': 'Game started successfully. Cards have been distributed and shown to players.'}, broadcast=True)       
     except Exception as e:
         # Emit an error response if an exception occurs
-        emit('start_game_response', {
+        emit('game_started', {
             'status': 'error',
             'message': str(e)
         })
     
 if __name__ == "__main__":
-    # socketio.run(app, debug=True)
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    socketio.run(app, debug=True)
+    # port = int(os.environ.get("PORT", 5000))
+    # app.run(host="0.0.0.0", port=port)
