@@ -12,12 +12,12 @@ class BoardManager:
         if not self._initialized:
                 
             self.character_locations = {
-            "Scarlett": "Hallway4",
-            "Plum": "Hallway6",
-            "Mustard": "Hallway10",
-            "Peacock": "Hallway16",
-            "Green": "Hallway21",
-            "White": "Hallway23"
+            "Scarlett": "Hallway2",
+            "Plum": "Hallway3",
+            "Mustard": "Hallway5",
+            "Peacock": "Hallway8",
+            "Green": "Ballroom",
+            "White": "Hallway12"
             }
 
             self.weapon_locations = {
@@ -30,11 +30,11 @@ class BoardManager:
             }
 
             self.clue_board = [
-            ["Study", "Hallway2", "Hall", "Hallway4", "Lounge"],
-            ["Hallway6", None, "Hallway8", None, "Hallway10"],
-            ["Library", "Hallway12", "Billiard Room", "Hallway14", "Dining Room"],
-            ["Hallway16", None, "Hallway18", None, "Hallway20"],
-            ["Conservatory", "Hallway21", "Ballroom", "Hallway23", "Kitchen"]
+            ["Study", "Hallway1", "Hall", "Hallway2", "Lounge"],
+            ["Hallway3", None, "Hallway4", None, "Hallway5"],
+            ["Library", "Hallway6", "Billiard Room", "Hallway7", "Dining Room"],
+            ["Hallway8", None, "Hallway9", None, "Hallway10"],
+            ["Conservatory", "Hallway11", "Ballroom", "Hallway12", "Kitchen"]
             ]
 
     def check_if_valid_character_input(self, character_name):
@@ -79,7 +79,9 @@ class BoardManager:
             if 0 <= new_row < rows and 0 <= new_col < cols:
                 destination = self.clue_board[new_row][new_col]
                 if destination is not None:
-                    directions.append((direction, destination))
+                    if self.is_hall_occupied(destination) == False:
+                        directions.append((direction, destination))
+                    
 
         # Add secret passages if applicable
         secret_passages = {
@@ -212,12 +214,13 @@ class BoardManager:
         return
 
     #Check room against all characters and return if occupied or not.
-    def is_room_occupied(self, room_name):
+    def is_hall_occupied(self, room_name):
         # Iterate through all character locations
         for character, location in self.character_locations.items():
-            if location == room_name:
-                print("Room is currently occupied by" + character)
-                return True
+            if "Hallway" in location:
+                if location == room_name:
+                    print("Room is currently occupied by" + character)
+                    return True
         return False
     
     def print_JSON_board(self, json_grid):

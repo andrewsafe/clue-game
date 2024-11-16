@@ -139,10 +139,9 @@ def main():
                 selected_move
 
                 if input_direction >= 0 & input_direction < len(possible_directions):
-                    if(board_manager.is_room_occupied(destination_room) == False):
-                        board_manager.moveCharToRoom(characters_list[character_counter], destination_room)
-                        board_manager.printCharLocations()
-                        exit_flag = True
+                    board_manager.moveCharToRoom(characters_list[character_counter], destination_room)
+                    board_manager.printCharLocations()
+                    exit_flag = True
                 else:
                     print("Move invalid!")
             #print updated board
