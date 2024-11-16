@@ -53,8 +53,7 @@ class BoardManager:
                 return False
 
     def get_possible_moves(self, player_character):
-        #Prints out possible directions (Up, Down, Left, Right) you can move from the given room.oom_name (str): The name of the current room.
-        #find the room name
+        # Find the current room of the player
         room_name = self.character_locations[player_character]
         # Find the position of the room on the board
         position = self.find_room_position(room_name)
@@ -81,6 +80,18 @@ class BoardManager:
                 destination = self.clue_board[new_row][new_col]
                 if destination is not None:
                     directions.append((direction, destination))
+
+        # Add secret passages if applicable
+        secret_passages = {
+            'Study': 'Kitchen',
+            'Kitchen': 'Study',
+            'Lounge': 'Conservatory',
+            'Conservatory': 'Lounge'
+        }
+
+        if room_name in secret_passages:
+            destination = secret_passages[room_name]
+            directions.append(('Secret Passage', destination))
 
         # Print the possible directions
         if directions:
