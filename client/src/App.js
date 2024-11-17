@@ -7,13 +7,14 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-const socket = io("http://localhost:5000", {
-  // const socket = io("http://127.0.0.1:5000", {
+// const socket = io("http://localhost:5000", {
+const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
 function App() {
   const [screen, setScreen] = useState("start");
+  const [playerId, setPlayerId] = useState("");
   const [players, setPlayers] = useState([]);
   const [currentPlayer, setCurrentPlayer] = useState("");
   const [character, setCharacter] = useState("");
@@ -24,6 +25,17 @@ function App() {
   const [gameState, setGameState] = useState(null);
 
   useEffect(() => {
+    socket.on("player_added", (data) => {
+      if (data.error) {
+        console.error(data.error);
+      } else {
+        // Store the player_id in loginId
+        setPlayerId(data.player_id);
+        setMessage(data.message)
+        console.log(`Player added with ID: ${data.player_id}`);
+      }
+    });
+
     socket.on("return_players", (data) => {
       setPlayers(data.players);
     });
@@ -32,6 +44,7 @@ function App() {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       setMessage(data.message);
+      setScreen("game");
       socket.emit("detailed_board");
       socket.emit("get_moves", data.current_player);
     });
@@ -88,7 +101,6 @@ function App() {
   const handleStartGame = () => {
     socket.emit("start_game");
     socket.emit("get_players");
-    setScreen("game");
   };
 
   const handleMove = (moveChoice) => {
@@ -119,10 +131,6 @@ function App() {
     socket.emit("end_turn");
   };
 
-  const handleEndGame = (winner) => {
-    socket.emit("end_game", winner);
-  };
-
   return (
     <div className="app">
       {screen === "start" && <StartScreen onAddPlayer={handleAddPlayer} />}
@@ -141,6 +149,7 @@ function App() {
           gameState={gameState}
           character={character}
           players={players}
+          playerId={playerId}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}

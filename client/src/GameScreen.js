@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import "./css/GameScreen.css";
 
-function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message, moves, location, gameState, character, players }) {
+function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message, moves, location, gameState, character, players, playerId }) {
     const [moveChoice, setMoveChoice] = useState("");
     const [suggestion, setSuggestion] = useState({ character: "", weapon: "", room: "" });
     const [accusation, setAccusation] = useState({ character: "", weapon: "", room: "" });
@@ -131,7 +131,7 @@ function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message
                 <h3>Players and Their Cards</h3>
                 {players.length > 0 ? (
                     <ul className="player-list">
-                        {players.map((player, index) => (
+                        {players.filter((player) => player.id === playerId).map((player, index) => (
                             <li key={index} className="player-item">
                                 <strong>{player.name}</strong>
                                 {player.cards && player.cards.length > 0 ? (
