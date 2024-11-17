@@ -44,6 +44,7 @@ function App() {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       setMessage(data.message);
+      setScreen("game");
       socket.emit("detailed_board");
       socket.emit("get_moves", data.current_player);
     });
@@ -99,7 +100,6 @@ function App() {
   const handleStartGame = () => {
     socket.emit("start_game");
     socket.emit("get_players");
-    setScreen("game");
   };
 
   const handleMove = (moveChoice) => {

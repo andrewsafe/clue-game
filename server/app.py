@@ -141,7 +141,7 @@ def add_player(data):
         emit('player_added', {"error": "Max number of players have already joined."})
         return
 
-    c_index = random.randint(0, len(game_system.available_characters))
+    c_index = random.randint(0, len(game_system.available_characters) - 1)
     character = game_system.available_characters[c_index]
     game_system.available_characters.pop(c_index)
 
@@ -312,23 +312,6 @@ def make_move(data):
     updated_board = board_manager.draw_detailed_board()
     emit('move_character_response', {"board": updated_board})
 
-# def is_room_occupied(self, room_name):
-#     # List to keep track of characters in the room
-#     occupants = []
-#     # Iterate through all character locations
-#     for character, location in self.character_locations.items():
-#         if location == room_name:
-#             occupants.append(character)
-#     if occupants:
-#         occupants_str = ', '.join(occupants)
-#         message = f"Room '{room_name}' is currently occupied by: {occupants_str}."
-#         logging.info(message)
-#         return {'status': 'occupied', 'message': message, 'occupants': occupants}
-#     else:
-#         message = f"Room '{room_name}' is not occupied."
-#         logging.info(message)
-#         return {'status': 'unoccupied', 'message': message, 'occupants': []}
-
 
 @socketio.on('make_suggestion')
 def make_suggestion(data):
@@ -425,7 +408,8 @@ def start_game(data=None):  # Add 'data' as a placeholder argument
         emit('game_started', {
             'current_player': game_system.active_players[game_system.counter].name, 
             'character': game_system.active_players[game_system.counter].character,
-            'message': 'Game started successfully. Cards have been distributed and shown to players.'}, broadcast=True)       
+            'message': 'Game started successfully. Cards have been distributed and shown to players.'
+            }, broadcast=True)       
     except Exception as e:
         # Emit an error response if an exception occurs
         emit('game_started', {
