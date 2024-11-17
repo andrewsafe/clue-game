@@ -7,8 +7,8 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("http://localhost:5000", {
-const socket = io("http://127.0.0.1:5000", {
+const socket = io("http://localhost:5000", {
+  // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -31,7 +31,7 @@ function App() {
       } else {
         // Store the player_id in loginId
         setPlayerId(data.player_id);
-        setMessage(data.message)
+        setMessage(data.message);
         console.log(`Player added with ID: ${data.player_id}`);
       }
     });
