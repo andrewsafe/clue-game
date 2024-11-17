@@ -53,6 +53,7 @@ function App() {
 
     socket.on("suggestion_made", (data) => {
       console.log("Suggestion Made: ", data.message);
+      socket.emit("detailed_board");
       setMessage(data.message);
     });
 

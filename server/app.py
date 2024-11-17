@@ -25,17 +25,17 @@ turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 # Add initial players for testing, using standardized character names
-game_system.add_player("Andrew", "Mustard", "Hall")
-game_system.add_player("Justin", "Plum", "Lounge")
-game_system.add_player("Elliot", "Peacock", "Library")
+game_system.add_player("Andrew", "Colonel Mustard", "Hall")
+game_system.add_player("Justin", "Professor Plum", "Lounge")
+game_system.add_player("Elliot", "Mrs. Peacock", "Library")
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
         Card("Professor Plum", "suspect"),
         Card("Reverend Green", "suspect"),
-        Card("Mrs. Peacock ", "suspect"),
+        Card("Mrs. Peacock", "suspect"),
         Card("Miss Scarlett", "suspect"),
-        Card("Mrs. White ", "suspect")
+        Card("Mrs. White", "suspect")
     ],
     [
         Card("Dagger", "weapon"),
@@ -345,6 +345,9 @@ def make_suggestion(data):
         cards[2][room_index - 1]
     )
 
+    board_manager.moveCharToRoom(suggestion.character, suggestion.room)
+    board = board_manager.draw_detailed_board()
+
     message = ""
     for player in game_system.players:
         incorrect_cards = suggestion.checkSuggestion(player.cards)
@@ -355,7 +358,7 @@ def make_suggestion(data):
     if message == "":
         message = f"Suggestion with Suspect: {suggestion.character}, Weapon: {suggestion.weapon}, Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
-    emit('suggestion_made', {"message": message})
+    emit('suggestion_made', {"message": message, "board": board})
 
 @socketio.on('make_accusation')
 def make_accusation(data):
