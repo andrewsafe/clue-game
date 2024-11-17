@@ -12,6 +12,14 @@ class GameSystem:
         """
         self.players = []  # List to hold player instances
         self.active_players = [] #List of active players who haven't lost (made incorrect accusations)
+        self.available_characters = [
+            #"Colonel Mustard",
+            #"Professor Plum",
+            "Reverend Green",
+            #"Mrs. Peacock",
+            "Miss Scarlett",
+            "Mrs. White"
+            ]
         self.cards = []    # List to hold all card instances
         self.current_turn = None
         self.game_state = "ongoing"  # Example of tracking game state
@@ -62,14 +70,16 @@ class GameSystem:
         self.distribute_cards()
         self.show_player_cards()
 
-    def add_player(self, player_name, character, starting_position="Hall"):
+    def add_player(self, player_name, character, player_id, starting_position="Hall"):
         # Check if the player already exists
         if player_name in [player.name for player in self.players]:
             return f"{player_name} already exists in the game."
 
         # Create a new player with character and starting position
-        new_player = Player(player_name, character, position=starting_position)
+        new_player = Player(player_name, character, player_id, position=starting_position)
+        print(f"{new_player.id} added successfully.")
         self.players.append(new_player)
+        print(f"{player_name} added successfully as {character}.")
         return f"{player_name} added successfully as {character}."
 
 

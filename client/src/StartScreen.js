@@ -4,6 +4,7 @@ import "./css/StartScreen.css";
 function StartScreen({ onAddPlayer }) {
     const [playerName, setPlayerName] = useState("");
     //const [character, setCharacter] = useState("");
+    //const [availableCharacters, setAvailableCharacters] = useState([]);
 
     const handleAddPlayer = () => {
         onAddPlayer({ playerName });

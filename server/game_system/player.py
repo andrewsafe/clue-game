@@ -1,7 +1,7 @@
 class Player:
     _id_counter = 1  # Class-level counter for unique IDs
 
-    def __init__(self, name, character, position=None):
+    def __init__(self, name, character, player_id, position=None):
         """
         Initialize a Player instance.
 
@@ -9,8 +9,7 @@ class Player:
         :param character: The character associated with the player.
         :param position: The starting position or room for the player.
         """
-        self.id = Player._id_counter  # Assign a unique ID
-        Player._id_counter += 1
+        self.id = player_id  # Assign a unique ID
         self.name = name
         self.character = character  # Add character attribute
         self.position = position  # Add position attribute

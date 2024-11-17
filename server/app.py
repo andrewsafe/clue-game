@@ -4,6 +4,7 @@ import os
 from flask_cors import CORS
 from flask import Flask, request, jsonify, Response
 from flask_socketio import SocketIO, send, emit
+import uuid
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
 from game_system.solution import Solution
@@ -15,27 +16,30 @@ from game_system.BoardManager import BoardManager
 app = Flask(__name__)
 # CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
 # socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
-# CORS(app, origins=["http://192.168.1.22:3001"])
-# socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
-CORS(app, origin=["http://localhost:3000"])
-socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
+CORS(app, origins=["http://192.168.1.22:3001"])
+socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
+# CORS(app, origin=["http://localhost:3000"])
+# socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 # Add initial players for testing, using standardized character names
-game_system.add_player("Andrew", "Mustard", "Hall")
-game_system.add_player("Justin", "Plum", "Lounge")
-game_system.add_player("Elliot", "Peacock", "Library")
+game_system.add_player("Andrew", "Colonel Mustard", str(uuid.uuid4()), "Hall")
+game_system.add_player("Justin", "Professor Plum", str(uuid.uuid4()), "Lounge")
+game_system.add_player("Elliot", "Mrs. Peacock", str(uuid.uuid4()), "Library")
+
+# Store mapping from socket ID to player ID
+socket_player_map = {}
 
 cards = [[
         Card("Colonel Mustard", "suspect"),
         Card("Professor Plum", "suspect"),
         Card("Reverend Green", "suspect"),
-        Card("Mrs. Peacock ", "suspect"),
+        Card("Mrs. Peacock", "suspect"),
         Card("Miss Scarlett", "suspect"),
-        Card("Mrs. White ", "suspect")
+        Card("Mrs. White", "suspect")
     ],
     [
         Card("Dagger", "weapon"),
@@ -56,7 +60,6 @@ cards = [[
         Card("Dining Room", "room"),
         Card("Conservatory", "room")    
     ]]
-
 
 option_table = """  
 ========================================================================
@@ -133,23 +136,36 @@ def add_player(data):
         data = json.loads(data)
 
     player_name = data.get("playerName")
-    character = data.get("character")
+
+    if len(game_system.available_characters) == 0:
+        emit('player_added', {"error": "Max number of players have already joined."})
+        return
+
+    c_index = random.randint(0, len(game_system.available_characters))
+    character = game_system.available_characters[c_index]
+    game_system.available_characters.pop(c_index)
 
     # Check if player name and character are provided
-    if not player_name or not character:
-        emit('add_player_response', {"error": "Player name and character are required"})
+    if not player_name:
+        emit('player_added', {"error": "Player name is required."})
         return
 
     # Check if the player already exists by name
     if player_name in [player.name for player in game_system.players]:
-        emit('add_player_response', {"error": f"{player_name} already exists"})
+        emit('player_added', {"error": f"{player_name} already exists"})
         return
+    
+    # Generate a unique player ID
+    player_id = str(uuid.uuid4())
+
+    # Associate the player's unique ID with the socket ID (the client's connection)
+    socket_player_map[request.sid] = player_id
 
     # Add player with name and character
     location = board_manager.character_locations[character]
-    message = game_system.add_player(player_name, character, location)
+    message = game_system.add_player(player_name, character, player_id, location)
     print(f"{player_name} added to the game as {character}.")
-    emit('add_player_response', {"message": message})
+    emit('player_added', {"message": message, "player_id": player_id})
 
 @socketio.on('get_players')
 def get_players():

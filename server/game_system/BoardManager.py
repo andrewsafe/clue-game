@@ -12,12 +12,12 @@ class BoardManager:
         if not self._initialized:
                 
             self.character_locations = {
-            "Scarlett": "Hallway2",
-            "Plum": "Hallway3",
-            "Mustard": "Hallway5",
-            "Peacock": "Hallway8",
-            "Green": "Ballroom",
-            "White": "Hallway12"
+            "Miss Scarlett": "Hallway2",
+            "Professor Plum": "Hallway3",
+            "Colonel Mustard": "Hallway5",
+            "Mrs. Peacock": "Hallway8",
+            "Reverend Green": "Ballroom",
+            "Mrs. White": "Hallway12"
             }
 
             self.weapon_locations = {
