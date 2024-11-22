@@ -16,19 +16,19 @@ from game_system.BoardManager import BoardManager
 app = Flask(__name__)
 # CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
 # socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
-CORS(app, origins=["http://192.168.1.22:3001"])
-socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
-# CORS(app, origin=["http://localhost:3000"])
-# socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
+#(app, origins=["http://192.168.1.22:3001"])
+#socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
+CORS(app, origin=["http://localhost:3000"])
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 # Add initial players for testing, using standardized character names
-game_system.add_player("Andrew", "Colonel Mustard", str(uuid.uuid4()), "Hall")
-game_system.add_player("Justin", "Professor Plum", str(uuid.uuid4()), "Lounge")
-game_system.add_player("Elliot", "Mrs. Peacock", str(uuid.uuid4()), "Library")
+# game_system.add_player("Andrew", "Colonel Mustard", str(uuid.uuid4()), "Hall")
+# game_system.add_player("Justin", "Professor Plum", str(uuid.uuid4()), "Lounge")
+# game_system.add_player("Elliot", "Mrs. Peacock", str(uuid.uuid4()), "Library")
 
 # Store mapping from socket ID to player ID
 socket_player_map = {}

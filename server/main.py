@@ -16,9 +16,9 @@ turn_manager = TurnManager(game_system.players)
 board_manager = BoardManager()
 
 #Add initial players for testing
-game_system.add_player("Andrew", "Scarlett")
-game_system.add_player("Justin", "Plum")
-game_system.add_player("Elliot", "Mustard")
+game_system.add_player("Andrew", "Miss Scarlett")
+game_system.add_player("Justin", "Professor Plum")
+game_system.add_player("Elliot", "Colonel Mustard")
 
 optionTable = """  
 ========================================================================
