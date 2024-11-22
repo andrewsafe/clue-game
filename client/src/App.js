@@ -7,8 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("http://localhost:5000", {
-const socket = io("http://127.0.0.1:5000", {
+// const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
+const socket = io("http://localhost:5000", {
+// const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -66,7 +67,6 @@ function App() {
 
     socket.on("suggestion_made", (data) => {
       console.log("Suggestion Made: ", data.message);
-      socket.emit("detailed_board");
       setMessage(data.message);
     });
 

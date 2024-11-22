@@ -16,7 +16,7 @@ class BoardManager:
             "Professor Plum": "Hallway3",
             "Colonel Mustard": "Hallway5",
             "Mrs. Peacock": "Hallway8",
-            "Reverend Green": "Ballroom",
+            "Reverend Green": "Hallway11",
             "Mrs. White": "Hallway12"
             }
 

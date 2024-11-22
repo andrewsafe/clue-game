@@ -13,10 +13,10 @@ class GameSystem:
         self.players = []  # List to hold player instances
         self.active_players = [] #List of active players who haven't lost (made incorrect accusations)
         self.available_characters = [
-            #"Colonel Mustard",
-            #"Professor Plum",
+            "Colonel Mustard",
+            "Professor Plum",
             "Reverend Green",
-            #"Mrs. Peacock",
+            "Mrs. Peacock",
             "Miss Scarlett",
             "Mrs. White"
             ]
