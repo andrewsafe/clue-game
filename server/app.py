@@ -116,9 +116,9 @@ def handle_disconnect():
 def detailed_board(data=None):
     try:
         board_state = board_manager.draw_detailed_board()
-        emit('board_response', board_state)
+        emit('board_response', board_state, broadcast=True)
     except Exception as e:
-        emit('board_response', {"error": str(e)})
+        emit('board_response', {"error": str(e)}, broadcast=True)
     
 # --------------------------------------------------------------------
 @app.route('/api/optionTable', methods=['GET'])
@@ -222,16 +222,16 @@ def player_turn(data):
             message = f"Player {player_id} wins by default."
             gameOver = True
         print(f"Turn started for Player {player_id}.")
-        emit('player_turn_response', {"message": message, "gameOver": gameOver})
+        emit('player_turn_response', {"message": message, "gameOver": gameOver}, broadcast=True)
     elif action == "end":
         if len(game_system.active_players) == 0:
-            emit('player_turn_response', {"error": "No active players in the game.", "gameOver": True})
+            emit('player_turn_response', {"error": "No active players in the game.", "gameOver": True}, broadcast=True)
             return
 
         game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.active_players) else 0
         next_player = game_system.active_players[game_system.counter].name
         print(f"Turn ended for Player {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
-        emit('player_turn_response', {"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver})
+        emit('player_turn_response', {"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver}, broadcast=True)
     else:
         emit('player_turn_response', {"error": "Invalid action"})
 
@@ -302,15 +302,12 @@ def make_move(data):
     character = game_system.active_players[game_system.counter].character
 
     if not character or not data:
-        emit('move_character_response', {
-            'status': 'error',
-            'message': 'Invalid data. "character" and "new_room" are required.'
-        })
+        emit('move_made', {'message': 'Invalid data. "character" and "new_room" are required.'}, broadcast=True)
         return
     
     board_manager.moveCharToRoom(character, data)
-    updated_board = board_manager.draw_detailed_board()
-    emit('move_character_response', {"board": updated_board})
+    # updated_board = board_manager.draw_detailed_board()
+    emit('move_made', {"message": f"{character} moved to {data}."}, broadcast=True)
 
 
 @socketio.on('make_suggestion')
@@ -344,7 +341,7 @@ def make_suggestion(data):
         cards[2][room_index - 1]
     )
 
-    board_manager.moveCharToRoom(cards[0][character_index - 1], cards[2][room_index - 1])
+    board_manager.moveCharToRoom(suggestion.character.name, suggestion.room.name)
 
     message = ""
     for player in game_system.players:
@@ -356,7 +353,7 @@ def make_suggestion(data):
     if message == "":
         message = f"Suggestion with Suspect: {suggestion.character}, Weapon: {suggestion.weapon}, Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
-    emit('suggestion_made', {"message": message})
+    emit('suggestion_made', {"message": message}, broadcast=True)
 
 @socketio.on('make_accusation')
 def make_accusation(data):
@@ -398,7 +395,7 @@ def make_accusation(data):
         print(f"{player_id} made an incorrect accusation and has been removed from the game.")
         emit('accusation_made', {
             "message": f"{player_id} made an incorrect accusation and has lost."
-        })
+        }, broadcast=True)
 
 @socketio.on('start_game')
 def start_game(data=None):  # Add 'data' as a placeholder argument

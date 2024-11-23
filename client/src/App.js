@@ -65,6 +65,11 @@ function App() {
       setLocation(data.currentLocation);
     });
 
+    socket.on("move_made", (data) => {
+      console.log("Move Made: ", data.message);
+      setMessage(data.message);
+    });
+
     socket.on("suggestion_made", (data) => {
       console.log("Suggestion Made: ", data.message);
       setMessage(data.message);
@@ -87,6 +92,7 @@ function App() {
       socket.off("board_response");
       socket.off("next_turn");
       socket.off("move_options");
+      socket.off("move_made");
       socket.off("suggestion_made");
       socket.off("accusation_made");
       socket.off("game_over");
@@ -119,6 +125,7 @@ function App() {
       return;
     }
     socket.emit("make_suggestion", suggestion);
+    socket.emit("detailed_board");
     socket.emit("end_turn");
   };
 
