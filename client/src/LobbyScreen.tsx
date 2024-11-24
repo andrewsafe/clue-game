@@ -1,11 +1,6 @@
 import React from "react";
 import "./css/LobbyScreen.css";
-
-// Define the props type
-type LobbyScreenProps = {
-  players: { name: string; character: string }[]; // Array of players
-  onStartGame: () => void; // Function to start the game
-};
+import { LobbyScreenProps } from "./types";
 
 const LobbyScreen: React.FC<LobbyScreenProps> = ({ players, onStartGame }) => {
   return (

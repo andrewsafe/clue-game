@@ -1,7 +1,8 @@
 import React from "react";
 import "./css/EndScreen.css";
+import { EndScreenProps } from "./types";
 
-function EndScreen({ winner, message }) {
+const EndScreen: React.FC<EndScreenProps> = ({ winner, message }) => {
   return (
     <div>
       <h1>Game Over</h1>
@@ -9,6 +10,6 @@ function EndScreen({ winner, message }) {
       <h2>{message}</h2>
     </div>
   );
-}
+};
 
 export default EndScreen;

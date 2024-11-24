@@ -1,32 +1,47 @@
 import React, { useState, useEffect } from "react";
 import io from "socket.io-client";
 import "./css/App.css";
-import StartScreen from "./StartScreen.js";
-import LobbyScreen from "./LobbyScreen.js";
-import GameScreen from "./GameScreen.js";
-import EndScreen from "./EndScreen.js";
+import StartScreen from "./StartScreen";
+import LobbyScreen from "./LobbyScreen";
+import GameScreen from "./GameScreen";
+import EndScreen from "./EndScreen";
+import { v4 as uuidv4 } from "uuid";
+import {
+  PlayerAddedData,
+  ReturnPlayersData,
+  GameStartedData,
+  BoardResponseData,
+  NextTurnData,
+  MoveOptionsData,
+  GenericMessageData,
+  GameOverData,
+  SuggestionOrAccusation,
+  Player,
+} from "./types";
 
 // Create socket connection
 // const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
-// const socket = io("http://localhost:5000", {
-const socket = io("http://127.0.0.1:5000", {
+const socket = io("http://localhost:5000", {
+  // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
-function App() {
-  const [screen, setScreen] = useState("start");
-  const [playerId, setPlayerId] = useState("");
-  const [players, setPlayers] = useState([]);
-  const [currentPlayer, setCurrentPlayer] = useState("");
-  const [character, setCharacter] = useState("");
-  const [location, setLocation] = useState("");
-  const [winner, setWinner] = useState(null);
-  const [message, setMessage] = useState("");
-  const [moves, setMoves] = useState([]);
-  const [gameState, setGameState] = useState(null);
+const App: React.FC = () => {
+  const [screen, setScreen] = useState<"start" | "lobby" | "game" | "end">(
+    "start"
+  );
+  const [playerId, setPlayerId] = useState<string>("");
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [currentPlayer, setCurrentPlayer] = useState<string>("");
+  const [character, setCharacter] = useState<string>("");
+  const [location, setLocation] = useState<string>("");
+  const [winner, setWinner] = useState<string>("");
+  const [message, setMessage] = useState<string>("");
+  const [moves, setMoves] = useState<string[]>([]);
+  const [gameState, setGameState] = useState<string[][]>([]);
 
   useEffect(() => {
-    socket.on("player_added", (data) => {
+    socket.on("player_added", (data: PlayerAddedData) => {
       if (data.error) {
         console.error(data.error);
       } else {
@@ -37,11 +52,11 @@ function App() {
       }
     });
 
-    socket.on("return_players", (data) => {
+    socket.on("return_players", (data: ReturnPlayersData) => {
       setPlayers(data.players);
     });
 
-    socket.on("game_started", (data) => {
+    socket.on("game_started", (data: GameStartedData) => {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       setMessage(data.message);
@@ -50,37 +65,37 @@ function App() {
       socket.emit("get_moves", data.current_player);
     });
 
-    socket.on("board_response", (data) => {
+    socket.on("board_response", (data: BoardResponseData) => {
       setGameState(data);
     });
 
-    socket.on("next_turn", (data) => {
+    socket.on("next_turn", (data: NextTurnData) => {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       socket.emit("get_moves", data.current_player);
     });
 
-    socket.on("move_options", (data) => {
+    socket.on("move_options", (data: MoveOptionsData) => {
       setMoves(data.moves);
       setLocation(data.currentLocation);
     });
 
-    socket.on("move_made", (data) => {
+    socket.on("move_made", (data: GenericMessageData) => {
       console.log("Move Made: ", data.message);
       setMessage(data.message);
     });
 
-    socket.on("suggestion_made", (data) => {
+    socket.on("suggestion_made", (data: GenericMessageData) => {
       console.log("Suggestion Made: ", data.message);
       setMessage(data.message);
     });
 
-    socket.on("accusation_made", (data) => {
+    socket.on("accusation_made", (data: GenericMessageData) => {
       console.log("Accusation Made: ", data.message);
       setMessage(data.message);
     });
 
-    socket.on("game_over", (data) => {
+    socket.on("game_over", (data: GameOverData) => {
       setWinner(data.winner);
       setMessage(data.message);
       setScreen("end");
@@ -99,17 +114,24 @@ function App() {
     };
   }, []);
 
-  const handleAddPlayer = (player) => {
-    socket.emit("add_player", player);
+  const handleAddPlayer = (player: { playerName: string }) => {
+    const newPlayer: Player = {
+      id: uuidv4(),
+      name: player.playerName,
+      character: "", // Provide a default or placeholder value
+      cards: [], // Optional: Provide an empty array if necessary
+    };
+    socket.emit("add_player", newPlayer);
     setScreen("lobby");
   };
 
   const handleStartGame = () => {
+    console.log("Start Game button clicked");
     socket.emit("start_game");
     socket.emit("get_players");
   };
 
-  const handleMove = (moveChoice) => {
+  const handleMove = (moveChoice: string) => {
     if (!moveChoice) {
       alert("Please select a location to move to.");
       return;
@@ -119,7 +141,7 @@ function App() {
     socket.emit("end_turn");
   };
 
-  const handleSuggestion = (suggestion) => {
+  const handleSuggestion = (suggestion: SuggestionOrAccusation) => {
     if (!suggestion.character || !suggestion.weapon || !suggestion.room) {
       alert("Please complete all suggestion fields.");
       return;
@@ -129,7 +151,7 @@ function App() {
     socket.emit("end_turn");
   };
 
-  const handleAccusation = (accusation) => {
+  const handleAccusation = (accusation: SuggestionOrAccusation) => {
     if (!accusation.character || !accusation.weapon || !accusation.room) {
       alert("Please complete all accusation fields.");
       return;
@@ -162,6 +184,6 @@ function App() {
       {screen === "end" && <EndScreen winner={winner} message={message} />}
     </div>
   );
-}
+};
 
 export default App;
