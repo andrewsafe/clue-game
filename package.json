@@ -1,12 +1,14 @@
 {
   "dependencies": {
     "axios": "^1.7.7",
-    "flask": "^0.2.10"
+    "flask": "^0.2.10",
+    "uuid": "^11.0.3"
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/socket.io-client": "^1.4.36",
     "typescript": "^5.7.2"
   }
 }

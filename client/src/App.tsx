@@ -116,7 +116,7 @@ const App: React.FC = () => {
 
   const handleAddPlayer = (player: { playerName: string }) => {
     const newPlayer: Player = {
-      id: uuidv4(),
+      id: "",
       name: player.playerName,
       character: "", // Provide a default or placeholder value
       cards: [], // Optional: Provide an empty array if necessary

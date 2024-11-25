@@ -16,10 +16,10 @@ from game_system.BoardManager import BoardManager
 app = Flask(__name__)
 # CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
 # socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
-CORS(app, origins=["http://192.168.1.22:3001"])
-socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
-# CORS(app, origin=["http://localhost:3000"])
-# socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
+# CORS(app, origins=["http://192.168.1.22:3001"])
+# socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
+CORS(app, origin=["http://localhost:3000"])
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
@@ -135,7 +135,7 @@ def add_player(data):
     if isinstance(data, str):
         data = json.loads(data)
 
-    player_name = data.get("playerName")
+    player_name = data.get("playerName") or data.get("name") # added this in for typescript refactoring .....
 
     if len(game_system.available_characters) == 0:
         emit('player_added', {"error": "Max number of players have already joined."})
@@ -399,8 +399,10 @@ def make_accusation(data):
 
 @socketio.on('start_game')
 def start_game(data=None):  # Add 'data' as a placeholder argument
+    print("hello")
     try:
         # Attempt to start the game
+        print("checking123")
         game_system.start_game()
         game_system.active_players = game_system.players.copy()
         # Emit a success response
@@ -409,6 +411,7 @@ def start_game(data=None):  # Add 'data' as a placeholder argument
             'character': game_system.active_players[game_system.counter].character,
             'message': 'Game started successfully. Cards have been distributed and shown to players.'
             }, broadcast=True)       
+        print("checking4321")
     except Exception as e:
         # Emit an error response if an exception occurs
         emit('game_started', {
