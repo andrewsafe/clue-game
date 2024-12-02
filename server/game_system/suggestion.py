@@ -27,9 +27,9 @@ class Suggestion:
         """
         incorrectCards = []
         if self.character in cards:
-            incorrectCards.append(self.character)
+            incorrectCards.append(self.character.name)
         if self.room in cards:
-            incorrectCards.append(self.room)
+            incorrectCards.append(self.room.name)
         if self.weapon in cards:
-            incorrectCards.append(self.weapon)
+            incorrectCards.append(self.weapon.name)
         return incorrectCards

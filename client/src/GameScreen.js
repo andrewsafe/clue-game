@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import "./css/GameScreen.css";
 
-function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message, moves, location, gameState, character, players, playerId }) {
+function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, onDisproveSuggestion, message, moves, location, gameState, 
+    character, players, playerId, revealOptions, disprovePlayer, disprovePlayerId, disproveSuggestionState }) {
     const [moveChoice, setMoveChoice] = useState("");
     const [suggestion, setSuggestion] = useState({ character: "", weapon: "", room: "" });
     const [accusation, setAccusation] = useState({ character: "", weapon: "", room: "" });
+    const [revealedCard, setRevealedCard] = useState(null); // Revealed card
 
     const handleMove = () => {
         onMove(moveChoice);
@@ -15,8 +17,17 @@ function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message
             alert("Please complete all suggestion fields");
             return;
         }
-        console.log("Suggestion:", suggestion);
+        console.log("Suggestion: ", suggestion);
         onSuggestion(suggestion);
+    };
+
+    const handleDisproveSuggestion = () => {
+        if (!revealedCard) {
+            alert("Please select the card to disprove.");
+            return;
+        }
+        console.log("Incorrect Card: ", revealedCard);
+        onDisproveSuggestion(revealedCard);
     };
 
     const handleAccusation = () => {
@@ -92,6 +103,22 @@ function GameScreen({ currentPlayer, onMove, onSuggestion, onAccusation, message
                 </select>
                 <button onClick={handleSuggestion}>Suggest</button>
             </div>
+
+            {disproveSuggestionState && (
+                <div>
+                    <h3>Select a Card to Disprove</h3>
+                    <select onChange={(e) => setRevealedCard(e.target.value)} value={revealedCard || ""}>
+                        <option value="">Select a Card</option>
+                        {revealOptions.map((card, index) => (
+                            <option key={index} value={card}>
+                                {card}
+                            </option>
+                        ))}
+                    </select>
+                    <button onClick={handleDisproveSuggestion}>Confirm Card to Disprove</button>
+                </div>
+            )}
+
 
             <div>
                 <h3>Make an Accusation</h3>
