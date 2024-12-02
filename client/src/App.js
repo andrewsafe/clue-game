@@ -24,6 +24,10 @@ function App() {
   const [message, setMessage] = useState("");
   const [moves, setMoves] = useState([]);
   const [gameState, setGameState] = useState(null);
+  const [revealOptions, setRevealOptions] = useState([]); // Cards to reveal
+  const [disprovePlayer, setDisprovePlayer] = useState(null); // Revealed card
+  const [disprovePlayerId, setDisprovePlayerId] = useState(null); // Revealed card
+  const [disproveSuggestionState, setDisproveSuggestionState] = useState(false);
 
   useEffect(() => {
     socket.on("player_added", (data) => {
@@ -73,6 +77,15 @@ function App() {
     socket.on("suggestion_made", (data) => {
       console.log("Suggestion Made: ", data.message);
       setMessage(data.message);
+      if(data.cards) {
+        console.log("Hi");
+        setDisproveSuggestionState(true);
+        setRevealOptions(data.cards);
+        setDisprovePlayer(data.player);
+        setDisprovePlayerId(data.player_id);
+      } else {
+        socket.emit("end_turn");
+      }
     });
 
     socket.on("accusation_made", (data) => {
@@ -126,8 +139,17 @@ function App() {
     }
     socket.emit("make_suggestion", suggestion);
     socket.emit("detailed_board");
-    socket.emit("end_turn");
   };
+
+  const handleDisproveSuggestion = (revealedCard) => {
+    if (!revealedCard) {
+      alert("Please select a card to disprove.");
+      return;
+    }
+    setMessage(`Player ${disprovePlayer} has the card ${revealedCard}, disproving the suggestion made.`)
+    setDisproveSuggestionState(false);
+    socket.emit("end_turn");
+  }; 
 
   const handleAccusation = (accusation) => {
     if (!accusation.character || !accusation.weapon || !accusation.room) {
@@ -150,6 +172,7 @@ function App() {
           onMove={handleMove}
           onSuggestion={handleSuggestion}
           onAccusation={handleAccusation}
+          onDisproveSuggestion={handleDisproveSuggestion}
           message={message}
           moves={moves}
           location={location}
@@ -157,6 +180,10 @@ function App() {
           character={character}
           players={players}
           playerId={playerId}
+          revealOptions={revealOptions}
+          disprovePlayer={disprovePlayer}
+          disprovePlayerId={disprovePlayerId}
+          disproveSuggestionState={disproveSuggestionState}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}

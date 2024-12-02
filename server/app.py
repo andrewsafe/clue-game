@@ -345,15 +345,21 @@ def make_suggestion(data):
 
     message = ""
     for player in game_system.players:
+        if player_id == player.name:
+            continue
         incorrect_cards = suggestion.checkSuggestion(player.cards)
         if incorrect_cards:
-            incorrect_card = incorrect_cards[random.randint(0, len(incorrect_cards) - 1)]
-            message = f"Incorrect {incorrect_card.category} suggested. Card: {incorrect_card.name}."
+            emit('suggestion_made', {
+                "message": f"Incorrect Suggestion Made. Disproven by player {player.name}.",
+                "cards": incorrect_cards,
+                "player": player.name,
+                "player_id": player.id
+                }, broadcast=True)
             break
     if message == "":
         message = f"Suggestion with Suspect: {suggestion.character}, Weapon: {suggestion.weapon}, Room: {suggestion.room} is correct."
     print(f"Suggestion processed for {player_id}.")
-    emit('suggestion_made', {"message": message}, broadcast=True)
+    emit('suggestion_made', {"message": message, "cards": None}, broadcast=True)
 
 @socketio.on('make_accusation')
 def make_accusation(data):
