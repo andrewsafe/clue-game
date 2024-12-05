@@ -8,8 +8,8 @@ import EndScreen from "./EndScreen.js";
 
 // Create socket connection
 // const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
-// const socket = io("http://localhost:5000", {
-  const socket = io("http://127.0.0.1:5000", {
+const socket = io("http://localhost:5000", {
+  // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -77,7 +77,7 @@ function App() {
     socket.on("suggestion_made", (data) => {
       console.log("Suggestion Made: ", data.message);
       setMessage(data.message);
-      if(data.cards) {
+      if (data.cards) {
         console.log("Hi");
         setDisproveSuggestionState(true);
         setRevealOptions(data.cards);
@@ -146,10 +146,12 @@ function App() {
       alert("Please select a card to disprove.");
       return;
     }
-    setMessage(`Player ${disprovePlayer} has the card ${revealedCard}, disproving the suggestion made.`)
+    setMessage(
+      `Player ${disprovePlayer} has the card ${revealedCard}, disproving the suggestion made.`
+    );
     setDisproveSuggestionState(false);
     socket.emit("end_turn");
-  }; 
+  };
 
   const handleAccusation = (accusation) => {
     if (!accusation.character || !accusation.weapon || !accusation.room) {
