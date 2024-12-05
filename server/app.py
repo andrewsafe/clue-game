@@ -394,13 +394,13 @@ def make_suggestion(data):
             }, room=suggesting_player_socket_id)
             # Notify other players that the suggestion was disproved without revealing cards
             emit('suggestion_made', {
-                "message": f"{player_id}'s suggestion was disproved by {player.name}."
+                "message": f"{player.name}'s suggestion was disproved by {player.name}."
             }, broadcast=True, include_self=False)
             break
     else:
         # If no one could disprove, notify all
         emit('suggestion_made', {
-            "message": f"No one could disprove {player_id}'s suggestion."
+            "message": f"No one could disprove {player.name}'s suggestion."
         }, broadcast=True)
 
 @socketio.on('make_accusation')
@@ -439,16 +439,16 @@ def make_accusation(data):
     result = accusation.checkAccusation(solution)
 
     if result:
-        print(f"{player_id} has won the game.")
-        emit('game_over', {"message": f"Correct accusation of Suspect: {suspect}   Weapon: {weapon}   Room: {room}. {player_id} wins!", 
-                           "winner": player_id})
+        print(f"{player.name} has won the game.")
+        emit('game_over', {"message": f"Correct accusation of Suspect: {suspect}   Weapon: {weapon}   Room: {room}. {player.name} wins!", 
+                           "winner": player.name})
     else:
         # Remove the player from active players
         game_system.active_players.pop(game_system.counter)
         game_system.counter -= 1
-        print(f"{player_id} made an incorrect accusation and has been removed from the game.")
+        print(f"{player.name} made an incorrect accusation and has been removed from the game.")
         emit('accusation_made', {
-            "message": f"{player_id} made an incorrect accusation and has lost."
+            "message": f"{player.name} made an incorrect accusation and has lost."
         }, broadcast=True)
     
 @socketio.on('chat_message')
