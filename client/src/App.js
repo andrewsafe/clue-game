@@ -42,7 +42,12 @@ function App() {
     });
 
     socket.on("return_players", (data) => {
-      setPlayers(data.players);
+      if (data.error) {
+        console.error(data.error);
+        setMessage(data.error);
+      } else {
+        setPlayers([data.player]); // Only set the current player's data
+      }
     });
 
     socket.on("game_started", (data) => {
@@ -61,6 +66,7 @@ function App() {
     socket.on("next_turn", (data) => {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
+      socket.emit("get_players");
       socket.emit("get_moves", data.current_player);
     });
 
@@ -75,22 +81,40 @@ function App() {
     });
 
     socket.on("suggestion_made", (data) => {
-      console.log("Suggestion Made: ", data.message);
-      setMessage(data.message);
-      if (data.cards) {
-        console.log("Hi");
-        setDisproveSuggestionState(true);
-        setRevealOptions(data.cards);
-        setDisprovePlayer(data.player);
-        setDisprovePlayerId(data.player_id);
+      if (data.error) {
+        setMessage(data.error);
       } else {
-        socket.emit("end_turn");
+        console.log("Suggestion Made: ", data.message);
+        setMessage(data.message);
       }
+      // if (data.cards) {
+      //   setDisproveSuggestionState(true);
+      //   setRevealOptions(data.cards);
+      //   setDisprovePlayer(data.player);
+      //   setDisprovePlayerId(data.player_id);
+      // } else {
+      //   socket.emit("end_turn");
+      // }
+    });
+
+    socket.on("suggestion_disproved", (data) => {
+      setMessage(data.message);
+      setDisproveSuggestionState(true);
+      setRevealOptions(data.cards);
     });
 
     socket.on("accusation_made", (data) => {
       console.log("Accusation Made: ", data.message);
       setMessage(data.message);
+    });
+
+    socket.on("return_players", (data) => {
+      if (data.error) {
+        setMessage(data.error);
+      } else {
+        console.log("Accusation Made: ", data.message);
+        setPlayers([data.player]);
+      }
     });
 
     socket.on("game_over", (data) => {
@@ -108,9 +132,10 @@ function App() {
       socket.off("move_made");
       socket.off("suggestion_made");
       socket.off("accusation_made");
+      socket.off("suggestion_disproved");
       socket.off("game_over");
     };
-  }, []);
+  }, [playerId]);
 
   const handleAddPlayer = (player) => {
     socket.emit("add_player", player);
@@ -129,6 +154,7 @@ function App() {
     }
     socket.emit("make_move", moveChoice);
     socket.emit("detailed_board");
+    socket.emit("get_moves", players[0]?.name);
     socket.emit("end_turn");
   };
 
@@ -139,6 +165,7 @@ function App() {
     }
     socket.emit("make_suggestion", suggestion);
     socket.emit("detailed_board");
+    socket.emit("get_moves", players[0]?.name);
   };
 
   const handleDisproveSuggestion = (revealedCard) => {
