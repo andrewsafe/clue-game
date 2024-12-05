@@ -87,14 +87,6 @@ function App() {
         console.log("Suggestion Made: ", data.message);
         setMessage(data.message);
       }
-      // if (data.cards) {
-      //   setDisproveSuggestionState(true);
-      //   setRevealOptions(data.cards);
-      //   setDisprovePlayer(data.player);
-      //   setDisprovePlayerId(data.player_id);
-      // } else {
-      //   socket.emit("end_turn");
-      // }
     });
 
     socket.on("suggestion_disproved", (data) => {
@@ -213,6 +205,7 @@ function App() {
           disprovePlayer={disprovePlayer}
           disprovePlayerId={disprovePlayerId}
           disproveSuggestionState={disproveSuggestionState}
+          socket={socket}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}
