@@ -84,11 +84,18 @@ function GameScreen({
       <h3>Current Location: {location}</h3>
       <div className="chat-container">
         <div className="chat-messages">
+          {!isPlayerTurn && (
+            <div className="system-message">
+              <em>
+                It's currently {currentPlayer}'s turn. Please wait for your
+                turn.
+              </em>
+            </div>
+          )}
           {messages.map((msg, index) => {
             const isOwnMessage = msg.player_id === playerId;
             const isSystemMessage = msg.player_id === "SYSTEM";
 
-            // Add a class for system messages if you want to style them differently
             const messageClass = isSystemMessage
               ? "system-message"
               : isOwnMessage
@@ -118,10 +125,6 @@ function GameScreen({
           <button onClick={sendChatMessage}>Send</button>
         </div>
       </div>
-
-      {!isPlayerTurn && (
-        <p>It's currently {currentPlayer}'s turn. Please wait for your turn.</p>
-      )}
       <h2>Game Board</h2>
       {gameState && gameState.length > 0 ? (
         <div className="board">
