@@ -7,9 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
-const socket = io("http://localhost:5000", {
-  // const socket = io("http://127.0.0.1:5000", {
+const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
+  // const socket = io("http://localhost:5000", {
+  //   const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -48,15 +48,6 @@ function App() {
 
     socket.on("chat_broadcast", (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
-    });
-
-    socket.on("return_players", (data) => {
-      if (data.error) {
-        console.error(data.error);
-        setMessage(data.error);
-      } else {
-        setPlayers([data.player]); // Only set the current player's data
-      }
     });
 
     socket.on("game_started", (data) => {
