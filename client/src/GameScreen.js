@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./css/GameScreen.css";
 
 function GameScreen({
@@ -18,6 +18,7 @@ function GameScreen({
   disprovePlayer,
   disprovePlayerId,
   disproveSuggestionState,
+  socket,
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -31,6 +32,9 @@ function GameScreen({
     room: "",
   });
   const [revealedCard, setRevealedCard] = useState(null); // Revealed card
+
+  const [messages, setMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
 
   const handleMove = () => {
     onMove(moveChoice);
@@ -55,6 +59,10 @@ function GameScreen({
   };
 
   const handleAccusation = () => {
+    if (!accusation.character || !accusation.weapon || !accusation.room) {
+      alert("Please complete all accusation fields.");
+      return;
+    }
     onAccusation(accusation);
   };
 
@@ -62,6 +70,22 @@ function GameScreen({
   console.log("Current Player:", currentPlayer);
   console.log("Your Player:", players[0]?.name);
   console.log("Is Your Turn:", isPlayerTurn);
+
+  useEffect(() => {
+    socket.on("chat_broadcast", (data) => {
+      setMessages((prevMessages) => [...prevMessages, data]);
+    });
+
+    return () => {
+      socket.off("chat_broadcast");
+    };
+  }, [socket]);
+
+  const sendChatMessage = () => {
+    if (!chatInput.trim()) return;
+    socket.emit("chat_message", { player_id: playerId, message: chatInput });
+    setChatInput("");
+  };
 
   return (
     <div className="game-screen">
@@ -256,6 +280,30 @@ function GameScreen({
         ) : (
           <p>No players found</p>
         )}
+      </div>
+      <div className="chat-container">
+        <div className="chat-messages">
+          {messages.map((msg, index) => {
+            const isOwnMessage = msg.player_id === playerId;
+            return (
+              <div
+                key={index}
+                className={`chat-message ${isOwnMessage ? "own-message" : ""}`}
+              >
+                <strong>{msg.player_name}:</strong> {msg.message}
+              </div>
+            );
+          })}
+        </div>
+        <div className="chat-input">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button onClick={sendChatMessage}>Send</button>
+        </div>
       </div>
     </div>
   );

@@ -451,6 +451,27 @@ def make_accusation(data):
             "message": f"{player_id} made an incorrect accusation and has lost."
         }, broadcast=True)
     
+@socketio.on('chat_message')
+def handle_chat_message(data):
+    player_id = data.get('player_id')
+    message = data.get('message')
+
+    # Validate input
+    if not player_id or not message:
+        return
+
+    # Optional: Get player name from player_id
+    player = next((p for p in game_system.players if p.id == player_id), None)
+    player_name = player.name if player else "Unknown Player"
+
+    # Broadcast the message to all clients
+    emit('chat_broadcast', {
+        'player_id': player_id,
+        'player_name': player_name,
+        'message': message
+    }, broadcast=True)
+
+    
 if __name__ == "__main__":
     socketio.run(app, debug=True)
     # port = int(os.environ.get("PORT", 5000))
