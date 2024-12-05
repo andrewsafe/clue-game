@@ -191,3 +191,9 @@ select {
 .chat-input button:hover {
   background-color: #0d47a1;
 }
+.system-message {
+  background-color: transparent;
+  color: #bbdefb;
+  font-style: italic;
+  margin: 5px 0;
+}

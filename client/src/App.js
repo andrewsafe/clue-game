@@ -28,6 +28,7 @@ function App() {
   const [disprovePlayer, setDisprovePlayer] = useState(null); // Revealed card
   const [disprovePlayerId, setDisprovePlayerId] = useState(null); // Revealed card
   const [disproveSuggestionState, setDisproveSuggestionState] = useState(false);
+  const [messages, setMessages] = useState([]);
 
   useEffect(() => {
     socket.on("player_added", (data) => {
@@ -39,6 +40,10 @@ function App() {
         setMessage(data.message);
         console.log(`Player added with ID: ${data.player_id}`);
       }
+    });
+
+    socket.on("chat_broadcast", (data) => {
+      setMessages((prevMessages) => [...prevMessages, data]);
     });
 
     socket.on("return_players", (data) => {
@@ -78,14 +83,26 @@ function App() {
     socket.on("move_made", (data) => {
       console.log("Move Made: ", data.message);
       setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
     });
 
     socket.on("suggestion_made", (data) => {
       if (data.error) {
         setMessage(data.error);
+        setMessages((prev) => [
+          ...prev,
+          { player_id: "SYSTEM", player_name: "Game", message: data.error },
+        ]);
       } else {
         console.log("Suggestion Made: ", data.message);
         setMessage(data.message);
+        setMessages((prev) => [
+          ...prev,
+          { player_id: "SYSTEM", player_name: "Game", message: data.message },
+        ]);
       }
     });
 
@@ -98,6 +115,10 @@ function App() {
     socket.on("accusation_made", (data) => {
       console.log("Accusation Made: ", data.message);
       setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
     });
 
     socket.on("return_players", (data) => {
@@ -112,6 +133,10 @@ function App() {
     socket.on("game_over", (data) => {
       setWinner(data.winner);
       setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
       setScreen("end");
     });
 
@@ -125,6 +150,7 @@ function App() {
       socket.off("suggestion_made");
       socket.off("accusation_made");
       socket.off("suggestion_disproved");
+      socket.off("chat_broadcast");
       socket.off("game_over");
     };
   }, [playerId]);
@@ -206,6 +232,7 @@ function App() {
           disprovePlayerId={disprovePlayerId}
           disproveSuggestionState={disproveSuggestionState}
           socket={socket}
+          messages={messages}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import "./css/GameScreen.css";
 
 function GameScreen({
@@ -19,6 +19,7 @@ function GameScreen({
   disprovePlayerId,
   disproveSuggestionState,
   socket,
+  messages,
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -32,8 +33,6 @@ function GameScreen({
     room: "",
   });
   const [revealedCard, setRevealedCard] = useState(null); // Revealed card
-
-  const [messages, setMessages] = useState([]);
   const [chatInput, setChatInput] = useState("");
 
   const handleMove = () => {
@@ -71,16 +70,6 @@ function GameScreen({
   console.log("Your Player:", players[0]?.name);
   console.log("Is Your Turn:", isPlayerTurn);
 
-  useEffect(() => {
-    socket.on("chat_broadcast", (data) => {
-      setMessages((prevMessages) => [...prevMessages, data]);
-    });
-
-    return () => {
-      socket.off("chat_broadcast");
-    };
-  }, [socket]);
-
   const sendChatMessage = () => {
     if (!chatInput.trim()) return;
     socket.emit("chat_message", { player_id: playerId, message: chatInput });
@@ -93,7 +82,42 @@ function GameScreen({
       <h3>Your Player: {players[0]?.name}</h3>
       <h3>Current Character: {character}</h3>
       <h3>Current Location: {location}</h3>
-      {message && <p>{message}</p>}
+      <div className="chat-container">
+        <div className="chat-messages">
+          {messages.map((msg, index) => {
+            const isOwnMessage = msg.player_id === playerId;
+            const isSystemMessage = msg.player_id === "SYSTEM";
+
+            // Add a class for system messages if you want to style them differently
+            const messageClass = isSystemMessage
+              ? "system-message"
+              : isOwnMessage
+              ? "own-message"
+              : "chat-message";
+
+            return (
+              <div key={index} className={messageClass}>
+                {isSystemMessage ? (
+                  <em>{msg.message}</em>
+                ) : (
+                  <>
+                    <strong>{msg.player_name}:</strong> {msg.message}
+                  </>
+                )}
+              </div>
+            );
+          })}
+        </div>
+        <div className="chat-input">
+          <input
+            type="text"
+            placeholder="Type your message..."
+            value={chatInput}
+            onChange={(e) => setChatInput(e.target.value)}
+          />
+          <button onClick={sendChatMessage}>Send</button>
+        </div>
+      </div>
 
       {!isPlayerTurn && (
         <p>It's currently {currentPlayer}'s turn. Please wait for your turn.</p>
@@ -280,30 +304,6 @@ function GameScreen({
         ) : (
           <p>No players found</p>
         )}
-      </div>
-      <div className="chat-container">
-        <div className="chat-messages">
-          {messages.map((msg, index) => {
-            const isOwnMessage = msg.player_id === playerId;
-            return (
-              <div
-                key={index}
-                className={`chat-message ${isOwnMessage ? "own-message" : ""}`}
-              >
-                <strong>{msg.player_name}:</strong> {msg.message}
-              </div>
-            );
-          })}
-        </div>
-        <div className="chat-input">
-          <input
-            type="text"
-            placeholder="Type your message..."
-            value={chatInput}
-            onChange={(e) => setChatInput(e.target.value)}
-          />
-          <button onClick={sendChatMessage}>Send</button>
-        </div>
       </div>
     </div>
   );
