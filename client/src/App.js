@@ -38,6 +38,10 @@ function App() {
         // Store the player_id in loginId
         setPlayerId(data.player_id);
         setMessage(data.message);
+        setMessages((prev) => [
+          ...prev,
+          { player_id: "SYSTEM", player_name: "Game", message: data.error },
+        ]);
         console.log(`Player added with ID: ${data.player_id}`);
       }
     });
@@ -59,6 +63,10 @@ function App() {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.error },
+      ]);
       setScreen("game");
       socket.emit("detailed_board");
       socket.emit("get_moves", data.current_player);
@@ -108,6 +116,10 @@ function App() {
 
     socket.on("suggestion_disproved", (data) => {
       setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.error },
+      ]);
       setDisproveSuggestionState(true);
       setRevealOptions(data.cards);
     });
@@ -125,7 +137,6 @@ function App() {
       if (data.error) {
         setMessage(data.error);
       } else {
-        console.log("Accusation Made: ", data.message);
         setPlayers([data.player]);
       }
     });
