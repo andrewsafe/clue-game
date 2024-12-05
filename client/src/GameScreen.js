@@ -66,9 +66,9 @@ function GameScreen({
   };
 
   const isPlayerTurn = currentPlayer === players[0]?.name;
-  console.log("Current Player:", currentPlayer);
-  console.log("Your Player:", players[0]?.name);
-  console.log("Is Your Turn:", isPlayerTurn);
+  // console.log("Current Player:", currentPlayer);
+  // console.log("Your Player:", players[0]?.name);
+  // console.log("Is Your Turn:", isPlayerTurn);
 
   const sendChatMessage = () => {
     if (!chatInput.trim()) return;
