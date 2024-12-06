@@ -111,5 +111,4 @@ Key elements:
 Dark Backgrounds (#121212, #1a1a1a, #1e1e1e) and Teal/Blue Highlights (#80d8ff, #1565c0, #004d99).
 Buttons, selects, and message boxes follow similar styling rules.
 System messages are italicized, and player’s own messages are highlighted to distinguish them from others.
-Future Improvements
 Enjoy playing and experimenting with the Clue web application!

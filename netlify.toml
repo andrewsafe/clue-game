@@ -5,3 +5,5 @@
 
 [build.environment]
   CI = "false"
+  command = "pip install --upgrade pip && npm run build"
+  publish = "client/build"
