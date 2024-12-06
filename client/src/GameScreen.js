@@ -14,6 +14,7 @@ function GameScreen({
   character,
   players,
   playerId,
+  localPlayer,
   revealOptions,
   disprovePlayer,
   disprovePlayerId,
@@ -65,7 +66,7 @@ function GameScreen({
     onAccusation(accusation);
   };
 
-  const isPlayerTurn = currentPlayer === players[0]?.name;
+  const isPlayerTurn = currentPlayer === localPlayer?.name;
   // console.log("Current Player:", currentPlayer);
   // console.log("Your Player:", players[0]?.name);
   // console.log("Is Your Turn:", isPlayerTurn);
@@ -79,7 +80,7 @@ function GameScreen({
   return (
     <div className="game-screen">
       <h2>Current Player: {currentPlayer}</h2>
-      <h3>Your Player: {players[0]?.name}</h3>
+      <h3>Your Player: {localPlayer?.name}</h3>
       <h3>Current Character: {character}</h3>
       <h3>Current Location: {location}</h3>
       <div className="chat-container">
@@ -281,26 +282,21 @@ function GameScreen({
         </button>
       </div>
       <div className="players-info">
-        <h3>Players and Their Cards</h3>
-        {players.length > 0 ? (
-          <ul className="player-list">
-            {players.map((player, index) => (
-              <li key={index} className="player-item">
-                <strong>{player.name}</strong>
-                {player.cards && player.cards.length > 0 ? (
-                  <div className="cards-list">
-                    {player.cards.map((card, cardIndex) => (
-                      <span key={cardIndex} className="card-item">
-                        {card.name}
-                      </span>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="no-cards">No cards assigned</span>
-                )}
-              </li>
-            ))}
-          </ul>
+        <h3>Player's Cards</h3>
+            {localPlayer ? (
+                <div className="player-details">
+                    {localPlayer.cards.length > 0 ? (
+                        <div className="cards-list">
+                            {localPlayer.cards.map((card, cardIndex) => (
+                                <span key={cardIndex} className="card-item">
+                                    {card.name}
+                                </span>
+                            ))}
+                        </div>
+                    ) : (
+                        <span className="no-cards">No cards assigned</span>
+                    )}
+                </div>
         ) : (
           <p>No players found</p>
         )}

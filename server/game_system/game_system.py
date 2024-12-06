@@ -67,7 +67,7 @@ class GameSystem:
         Start the game by distributing cards and displaying player cards.
         """
         self.distribute_cards()
-        self.show_player_cards()
+        #self.show_player_cards()
 
     def add_player(self, player_name, character, player_id, starting_position="Hall"):
         # Check if the player already exists
@@ -76,9 +76,7 @@ class GameSystem:
 
         # Create a new player with character and starting position
         new_player = Player(player_name, character, player_id, position=starting_position)
-        print(f"{new_player.id} added successfully.")
         self.players.append(new_player)
-        print(f"{player_name} added successfully as {character}.")
         return f"{player_name} added successfully as {character}."
 
 

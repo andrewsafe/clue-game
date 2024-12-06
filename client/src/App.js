@@ -7,9 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("https://peppy-empanada-ec068d.netlify.app/", {
-const socket = io("http://localhost:5000", {
-  // const socket = io("http://127.0.0.1:5000", {
+// const socket = io("https://clue-game-server.onrender.com/", {
+// const socket = io("http://localhost:5000", {
+const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -17,6 +17,7 @@ function App() {
   const [screen, setScreen] = useState("start");
   const [playerId, setPlayerId] = useState("");
   const [players, setPlayers] = useState([]);
+  const [localPlayer, setLocalPlayer] = useState(null);
   const [currentPlayer, setCurrentPlayer] = useState("");
   const [character, setCharacter] = useState("");
   const [location, setLocation] = useState("");
@@ -50,12 +51,26 @@ function App() {
       setMessages((prevMessages) => [...prevMessages, data]);
     });
 
+    // socket.on("return_players", (data) => {
+    //   if (data.error) {
+    //     console.error(data.error);
+    //     setMessage(data.error);
+    //   } else {
+    //     setPlayers([data.player]); // Only set the current player's data
+    //   }
+    // });
+
     socket.on("return_players", (data) => {
       if (data.error) {
         console.error(data.error);
         setMessage(data.error);
       } else {
-        setPlayers([data.player]); // Only set the current player's data
+        setPlayers([data.players]);
+        for (let player of data.players) {
+          if (player.id === playerId) {
+            setLocalPlayer(player);
+          }
+        }
       }
     });
 
@@ -79,7 +94,7 @@ function App() {
     socket.on("next_turn", (data) => {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
-      socket.emit("get_players");
+      // socket.emit("get_players");
       socket.emit("get_moves", data.current_player);
     });
 
@@ -114,14 +129,24 @@ function App() {
       }
     });
 
-    socket.on("suggestion_disproved", (data) => {
+    socket.on("suggestion_incorrect", (data) => {
+      console.log(data.cards)
       setMessage(data.message);
       setMessages((prev) => [
         ...prev,
-        { player_id: "SYSTEM", player_name: "Game", message: data.error },
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
       ]);
       setDisproveSuggestionState(true);
       setRevealOptions(data.cards);
+    });
+
+    socket.on("suggestion_disproved", (data) => {
+      console.log("HI")
+      setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
     });
 
     socket.on("accusation_made", (data) => {
@@ -131,14 +156,6 @@ function App() {
         ...prev,
         { player_id: "SYSTEM", player_name: "Game", message: data.message },
       ]);
-    });
-
-    socket.on("return_players", (data) => {
-      if (data.error) {
-        setMessage(data.error);
-      } else {
-        setPlayers([data.player]);
-      }
     });
 
     socket.on("game_over", (data) => {
@@ -160,6 +177,7 @@ function App() {
       socket.off("move_made");
       socket.off("suggestion_made");
       socket.off("accusation_made");
+      socket.off("suggestion_incorrect");
       socket.off("suggestion_disproved");
       socket.off("chat_broadcast");
       socket.off("game_over");
@@ -183,7 +201,7 @@ function App() {
     }
     socket.emit("make_move", moveChoice);
     socket.emit("detailed_board");
-    socket.emit("get_moves", players[0]?.name);
+    socket.emit("get_moves", localPlayer?.name);
     socket.emit("end_turn");
   };
 
@@ -194,7 +212,7 @@ function App() {
     }
     socket.emit("make_suggestion", suggestion);
     socket.emit("detailed_board");
-    socket.emit("get_moves", players[0]?.name);
+    socket.emit("get_moves", localPlayer?.name);
   };
 
   const handleDisproveSuggestion = (revealedCard) => {
@@ -202,9 +220,9 @@ function App() {
       alert("Please select a card to disprove.");
       return;
     }
-    setMessage(
-      `Player ${disprovePlayer} has the card ${revealedCard}, disproving the suggestion made.`
-    );
+    console.log(localPlayer)
+    console.log(currentPlayer)
+    socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
     setDisproveSuggestionState(false);
     socket.emit("end_turn");
   };
@@ -238,6 +256,7 @@ function App() {
           character={character}
           players={players}
           playerId={playerId}
+          localPlayer={localPlayer}
           revealOptions={revealOptions}
           disprovePlayer={disprovePlayer}
           disprovePlayerId={disprovePlayerId}
