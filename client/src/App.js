@@ -26,10 +26,9 @@ function App() {
   const [moves, setMoves] = useState([]);
   const [gameState, setGameState] = useState(null);
   const [revealOptions, setRevealOptions] = useState([]); // Cards to reveal
-  const [disprovePlayer, setDisprovePlayer] = useState(null); // Revealed card
-  const [disprovePlayerId, setDisprovePlayerId] = useState(null); // Revealed card
   const [disproveSuggestionState, setDisproveSuggestionState] = useState(false);
   const [messages, setMessages] = useState([]);
+  const [inRoom, setInRoom] = useState(false);
 
   useEffect(() => {
     socket.on("player_added", (data) => {
@@ -50,15 +49,6 @@ function App() {
     socket.on("chat_broadcast", (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
     });
-
-    // socket.on("return_players", (data) => {
-    //   if (data.error) {
-    //     console.error(data.error);
-    //     setMessage(data.error);
-    //   } else {
-    //     setPlayers([data.player]); // Only set the current player's data
-    //   }
-    // });
 
     socket.on("return_players", (data) => {
       if (data.error) {
@@ -101,6 +91,11 @@ function App() {
     socket.on("move_options", (data) => {
       setMoves(data.moves);
       setLocation(data.currentLocation);
+      if (data.currentLocation.length < 5 || data.currentLocation[4] !== 'w' ){
+        setInRoom(true);
+      } else {
+        setInRoom(false);
+      }
     });
 
     socket.on("move_made", (data) => {
@@ -199,10 +194,15 @@ function App() {
       alert("Please select a location to move to.");
       return;
     }
+    setLocation(moveChoice)
     socket.emit("make_move", moveChoice);
+    if (moveChoice.length < 5 || moveChoice[4] !== 'w') {
+      setInRoom(true);
+    } else {
+      setInRoom(false);
+    }
     socket.emit("detailed_board");
-    socket.emit("get_moves", localPlayer?.name);
-    socket.emit("end_turn");
+    //socket.emit("end_turn");
   };
 
   const handleSuggestion = (suggestion) => {
@@ -212,7 +212,6 @@ function App() {
     }
     socket.emit("make_suggestion", suggestion);
     socket.emit("detailed_board");
-    socket.emit("get_moves", localPlayer?.name);
   };
 
   const handleDisproveSuggestion = (revealedCard) => {
@@ -249,7 +248,6 @@ function App() {
           onSuggestion={handleSuggestion}
           onAccusation={handleAccusation}
           onDisproveSuggestion={handleDisproveSuggestion}
-          message={message}
           moves={moves}
           location={location}
           gameState={gameState}
@@ -258,11 +256,10 @@ function App() {
           playerId={playerId}
           localPlayer={localPlayer}
           revealOptions={revealOptions}
-          disprovePlayer={disprovePlayer}
-          disprovePlayerId={disprovePlayerId}
           disproveSuggestionState={disproveSuggestionState}
           socket={socket}
           messages={messages}
+          inRoom={inRoom}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}

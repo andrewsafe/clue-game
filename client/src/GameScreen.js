@@ -7,7 +7,6 @@ function GameScreen({
   onSuggestion,
   onAccusation,
   onDisproveSuggestion,
-  message,
   moves,
   location,
   gameState,
@@ -16,11 +15,10 @@ function GameScreen({
   playerId,
   localPlayer,
   revealOptions,
-  disprovePlayer,
-  disprovePlayerId,
   disproveSuggestionState,
   socket,
   messages,
+  inRoom
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -45,6 +43,37 @@ function GameScreen({
       alert("Please complete all suggestion fields");
       return;
     }
+
+    switch(suggestion.room) {
+        case 'Hall':
+            suggestion.room = '1';
+            break;
+        case 'Lounge':
+            suggestion.room = '2';
+            break;
+        case 'Library':
+            suggestion.room = '3';
+            break;
+        case 'Kitchen':
+            suggestion.room = '4';
+            break;
+        case 'Billiard Room':
+            suggestion.room = '5';
+            break;
+        case 'Study':
+            suggestion.room = '6';
+            break;
+        case 'Ballroom':
+            suggestion.room = '7';
+            break;
+        case 'Dining Room':
+            suggestion.room = '8';
+            break;
+        default:
+            suggestion.room = '9';
+            break;
+    }
+
     console.log("Suggestion: ", suggestion);
     onSuggestion(suggestion);
   };
@@ -159,55 +188,53 @@ function GameScreen({
       </div>
 
       <div>
-        <h3>Make a Suggestion</h3>
-        <select
-          onChange={(e) =>
-            setSuggestion((prev) => ({ ...prev, character: e.target.value }))
-          }
-          disabled={!isPlayerTurn}
-        >
-          <option value="">Select Suspect</option>
-          <option value="1">Colonel Mustard</option>
-          <option value="2">Professor Plum</option>
-          <option value="3">Reverend Green</option>
-          <option value="4">Mrs. Peacock</option>
-          <option value="5">Miss Scarlett</option>
-          <option value="6">Mrs. White</option>
-        </select>
-        <select
-          onChange={(e) =>
-            setSuggestion((prev) => ({ ...prev, weapon: e.target.value }))
-          }
-          disabled={!isPlayerTurn}
-        >
-          <option value="">Select Weapon</option>
-          <option value="1">Dagger</option>
-          <option value="2">Candlestick</option>
-          <option value="3">Revolver</option>
-          <option value="4">Rope</option>
-          <option value="5">Lead Pipe</option>
-          <option value="6">Wrench</option>
-        </select>
-        <select
-          onChange={(e) =>
-            setSuggestion((prev) => ({ ...prev, room: e.target.value }))
-          }
-          disabled={!isPlayerTurn}
-        >
-          <option value="">Select Room</option>
-          <option value="1">Hall</option>
-          <option value="2">Lounge</option>
-          <option value="3">Library</option>
-          <option value="4">Kitchen</option>
-          <option value="5">Billiard Room</option>
-          <option value="6">Study</option>
-          <option value="7">Ballroom</option>
-          <option value="8">Dining Room</option>
-          <option value="9">Conservatory</option>
-        </select>
-        <button onClick={handleSuggestion} disabled={!isPlayerTurn}>
-          Suggest
-        </button>
+        {inRoom ? (
+            <div>
+                <h3>Make a Suggestion</h3>
+                <select
+                onChange={(e) =>
+                    setSuggestion((prev) => ({ ...prev, character: e.target.value }))
+                }
+                disabled={!isPlayerTurn}
+                >
+                <option value="">Select Suspect</option>
+                <option value="1">Colonel Mustard</option>
+                <option value="2">Professor Plum</option>
+                <option value="3">Reverend Green</option>
+                <option value="4">Mrs. Peacock</option>
+                <option value="5">Miss Scarlett</option>
+                <option value="6">Mrs. White</option>
+                </select>
+                <select
+                onChange={(e) =>
+                    setSuggestion((prev) => ({ ...prev, weapon: e.target.value }))
+                }
+                disabled={!isPlayerTurn}
+                >
+                <option value="">Select Weapon</option>
+                <option value="1">Dagger</option>
+                <option value="2">Candlestick</option>
+                <option value="3">Revolver</option>
+                <option value="4">Rope</option>
+                <option value="5">Lead Pipe</option>
+                <option value="6">Wrench</option>
+                </select>
+                <select
+                onChange={(e) =>
+                    setSuggestion((prev) => ({ ...prev, room: e.target.value }))
+                }
+                disabled={!isPlayerTurn}
+                >
+                <option value="">Select Room</option>
+                <option value={location}>{location}</option>
+                </select>
+                <button onClick={handleSuggestion} disabled={!isPlayerTurn}>
+                Suggest
+                </button>
+            </div>
+        ) : (
+            <h4>Can't make a suggestion if your player is not in a room.</h4>
+        )}
       </div>
 
       {disproveSuggestionState && revealOptions.length > 0 && (

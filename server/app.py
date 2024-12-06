@@ -307,18 +307,15 @@ def get_moves(current_player):  # Add 'data' as a placeholder argument
 
         # Retrieve the player's character and current location
         player_character = player.character
-        print(f"Player character found: {player_character}")
 
         # Get current location of the player on the board
         current_location = board_manager.character_locations.get(player_character)
         if not current_location:
             emit('move_options', {"error": "Player's current location not found"})
             return
-        print(f"Player's current location: {current_location}")
 
         # Get possible moves using `get_possible_moves`
         directions = board_manager.get_possible_moves(player_character)
-        print(f"Possible directions: {directions}")
 
         # Format the response with current location and options
         moves = []
@@ -349,7 +346,7 @@ def make_move(data):
     
     board_manager.moveCharToRoom(character, data)
     # updated_board = board_manager.draw_detailed_board()
-    emit('move_made', {"message": f"{character} moved to {data}."}, broadcast=True)
+    emit('move_made', {"message": f"{character} moved to {data}.", "location": data}, broadcast=True)
 
 
 @socketio.on('make_suggestion')
