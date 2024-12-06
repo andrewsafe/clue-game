@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 import random
 import json
 import os
@@ -15,7 +17,7 @@ from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
 CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app/"])
-socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app/")
+socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
 # # CORS(app, origins=["http://192.168.1.22:3001"])
 # # socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
 # CORS(app, origin=["http://localhost:3000"])
