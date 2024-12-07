@@ -347,8 +347,26 @@ def make_move(data):
         return
     
     board_manager.moveCharToRoom(character, data)
-    # updated_board = board_manager.draw_detailed_board()
-    emit('move_made', {"message": f"{character} moved to {data}.", "location": data}, broadcast=True)
+    resultList={"message": f"{character} moved to {data}."}
+    try:
+        board_state = board_manager.draw_detailed_board()
+        resultList["board"]=board_state
+        
+        #working code, a copy of end_turn
+        # Move to the next player
+        game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
+        next_player = game_system.active_players[game_system.counter].name
+        if len(game_system.active_players) == 1:
+            emit('game_over', {
+                'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
+                'winner': next_player               
+            })
+        resultList['current_player']=next_player
+        resultList['character']=game_system.active_players[game_system.counter].character
+
+        emit('move_made', resultList, broadcast=True)
+    except Exception as e:
+        emit('move_made', {"error": str(e)}, broadcast=True)
 
 
 @socketio.on('make_suggestion')

@@ -105,6 +105,10 @@ function App() {
         ...prev,
         { player_id: "SYSTEM", player_name: "Game", message: data.message },
       ]);
+      setGameState(data.board);
+      setCurrentPlayer(data.current_player);
+      setCharacter(data.character);
+      socket.emit("get_moves", data.current_player);
     });
 
     socket.on("suggestion_made", (data) => {
