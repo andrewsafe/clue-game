@@ -37,6 +37,9 @@ class BoardManager:
             ["Conservatory", "Hallway11", "Ballroom", "Hallway12", "Kitchen"]
             ]
 
+        self._initialized = True
+
+
     def check_if_valid_character_input(self, character_name):
         # Normalize the input to lowercase
         character_name_lower = character_name.lower()
@@ -129,68 +132,55 @@ class BoardManager:
 
     def draw_detailed_board(self):
         """
-        Draws a detailed representation of the Clue board.
         Returns a JSON-serializable structure of the board state.
+        Instead of ASCII art, we provide a structured JSON:
+        [
+        [
+            { "type": "room", "name": "Study", "characters": ["Miss Scarlett"] },
+            { "type": "hallway", "name": "Hallway1", "characters": [] },
+            ...
+        ],
+        ...
+        ]
         """
-        # Define cell dimensions
-        CELL_WIDTH = 15
-        CELL_HEIGHT = 5  # Adjust as needed
 
         rows = len(self.clue_board)
         cols = len(self.clue_board[0])
 
-        # Create a display grid as a list of lists to be JSON-serializable
-        display_grid = []
+        # Create a dictionary to track which characters are in each cell
+        cell_characters = {(r, c): [] for r in range(rows) for c in range(cols)}
 
-        for row_index in range(rows):
-            row_cells = []
-
-            for col_index in range(cols):
-                cell_content = []
-                cell = self.clue_board[row_index][col_index]
-
-                # Build cell content
-                if cell is None:
-                    # Fill empty spaces with a placeholder (e.g., 'X's or spaces)
-                    cell_lines = ['X' * CELL_WIDTH for _ in range(CELL_HEIGHT)]
-                elif cell.startswith('Hallway'):
-                    # Hallway
-                    # First line: Hallway name centered
-                    cell_lines = [cell.center(CELL_WIDTH)]
-                    # Remaining lines: Empty space
-                    for _ in range(CELL_HEIGHT - 1):
-                        cell_lines.append(' ' * CELL_WIDTH)
-                else:
-                    # Room
-                    # First line: Room name centered
-                    cell_lines = [cell.center(CELL_WIDTH)]
-                    # Middle lines: Empty space
-                    for _ in range(CELL_HEIGHT - 2):
-                        cell_lines.append(' ' * CELL_WIDTH)
-                    # Placeholder for player names
-                    cell_lines.append(' ' * CELL_WIDTH)
-
-                # Append cell content to the current row
-                row_cells.append(cell_lines)
-
-            # Append the row to the display grid
-            display_grid.append(row_cells)
-
-        # Place characters in their locations
+        # Fill cell_characters based on character_locations
         for character, location in self.character_locations.items():
             coords = self.find_room_position(location)
             if coords:
-                row, col = coords
-                cell_lines = display_grid[row][col]
-                player_name = character  # Remove ANSI escape codes for JSON serialization
+                cell_characters[coords].append(character)
 
-                # Place player name in the last line of the cell content
-                cell_lines[-1] = player_name.center(CELL_WIDTH)
+        json_grid = []
+        for r in range(rows):
+            row_cells = []
+            for c in range(cols):
+                cell = self.clue_board[r][c]
+                cell_data = {
+                    "type": None,
+                    "name": None,
+                    "characters": cell_characters[(r, c)]
+                }
 
-        # Convert display grid to a JSON-serializable format
-        json_grid = [
-            ['\n'.join(cell_lines) for cell_lines in row_cells] for row_cells in display_grid
-        ]
+                if cell is None:
+                    # Blocked or empty space
+                    cell_data["type"] = "blocked"
+                elif cell.startswith('Hallway'):
+                    # Hallway cell
+                    cell_data["type"] = "hallway"
+                    cell_data["name"] = cell
+                else:
+                    # Room cell
+                    cell_data["type"] = "room"
+                    cell_data["name"] = cell
+
+                row_cells.append(cell_data)
+            json_grid.append(row_cells)
 
         return json_grid
  
