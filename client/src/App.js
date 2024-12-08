@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, act } from "react";
 import io from "socket.io-client";
 import "./css/App.css";
 import StartScreen from "./StartScreen";
@@ -31,6 +31,8 @@ function App() {
   const [inRoom, setInRoom] = useState(false);
   const [playerMoved, setPlayerMoved] = useState(false);
   const [actionMade, setActionMade] = useState(false);
+  const [cannotMove, setCannotMove] = useState(false);
+  const [movedBySuggestion, setMovedBySuggestion] = useState(false);
 
   useEffect(() => {
     socket.on("player_added", (data) => {
@@ -60,6 +62,7 @@ function App() {
         setPlayers([data.players]);
         for (let player of data.players) {
           if (player.id === playerId) {
+            console.log("Match")
             setLocalPlayer(player);
           }
         }
@@ -91,7 +94,10 @@ function App() {
       ]);
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
-      // socket.emit("get_players");
+
+      if (localPlayer.name === data.current_player && data.moved_by_suggestion){
+        setMovedBySuggestion(true)
+      }
       socket.emit("get_moves", data.current_player);
     });
 
@@ -103,6 +109,10 @@ function App() {
       } else {
         setInRoom(false);
       }
+
+      if(data.moves.length === 0) {
+        setCannotMove(true);
+      }
     });
 
     socket.on("move_made", (data) => {
@@ -112,9 +122,7 @@ function App() {
         ...prev,
         { player_id: "SYSTEM", player_name: "Game", message: data.message },
       ]);
-      setPlayerMoved(true);
       setGameState(data.board);
-      //socket.emit("get_moves", data.current_player);
     });
 
     socket.on("suggestion_made", (data) => {
@@ -186,7 +194,7 @@ function App() {
       socket.off("chat_broadcast");
       socket.off("game_over");
     };
-  }, [playerId]);
+  }, [playerId, localPlayer]);
 
   const handleAddPlayer = (player) => {
     socket.emit("add_player", player);
@@ -204,12 +212,25 @@ function App() {
       return;
     }
     setLocation(moveChoice)
+    setMessages((prev) => [
+      ...prev,
+      {
+        player_id: "SYSTEM", player_name: "Game",
+        message: `You have moved your Character ${character} to Room ${moveChoice}.`
+      },
+    ]);
     socket.emit("make_move", moveChoice);
     if (moveChoice.length < 5 || moveChoice[4] !== 'w') {
       setInRoom(true);
     } else {
       setInRoom(false);
     }
+    setLocalPlayer(prevState => ({
+      ...prevState,  // Keep the previous properties
+      location: moveChoice  // Update the location
+    }));
+    setActionMade(true);
+    setPlayerMoved(true);
     socket.emit("detailed_board");
   };
 
@@ -218,7 +239,14 @@ function App() {
       alert("Please complete all suggestion fields.");
       return;
     }
+    setMessages((prev) => [
+      ...prev,
+      { player_id: "SYSTEM", player_name: "Game", 
+        message: `You are making a suggestion with Suspect: ${suggestion.character}, Weapon: ${suggestion.weapon}, and Room: ${suggestion.room}.`
+      },
+    ]);
     socket.emit("make_suggestion", suggestion);
+    setActionMade(true)
     socket.emit("detailed_board");
   };
 
@@ -227,10 +255,8 @@ function App() {
       alert("Please select a card to disprove.");
       return;
     }
-    console.log(localPlayer)
-    console.log(currentPlayer)
-    socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
     setDisproveSuggestionState(false);
+    socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
   };
 
   const handleAccusation = (accusation) => {
@@ -239,10 +265,11 @@ function App() {
       return;
     }
     socket.emit("make_accusation", accusation);
-    socket.emit("end_turn");
+    setActionMade(true);
   };
 
   const handleEndTurn = () => {
+    setMovedBySuggestion(false);
     socket.emit("end_turn");
   };
 
@@ -264,7 +291,6 @@ function App() {
           location={location}
           gameState={gameState}
           character={character}
-          players={players}
           playerId={playerId}
           localPlayer={localPlayer}
           revealOptions={revealOptions}
@@ -272,6 +298,10 @@ function App() {
           socket={socket}
           messages={messages}
           inRoom={inRoom}
+          playerMoved={playerMoved}
+          actionMade={actionMade}
+          cannotMove={cannotMove}
+          movedBySuggestion={movedBySuggestion}
         />
       )}
       {screen === "end" && <EndScreen winner={winner} message={message} />}

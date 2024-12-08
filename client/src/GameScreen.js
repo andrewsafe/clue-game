@@ -12,14 +12,17 @@ function GameScreen({
   location,
   gameState,
   character,
-  players,
   playerId,
   localPlayer,
   revealOptions,
   disproveSuggestionState,
   socket,
   messages,
-  inRoom
+  inRoom,
+  playerMoved,
+  actionMade,
+  cannotMove,
+  movedBySuggestion
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -101,9 +104,6 @@ function GameScreen({
   };
 
   const isPlayerTurn = currentPlayer === localPlayer?.name;
-  // console.log("Current Player:", currentPlayer);
-  // console.log("Your Player:", players[0]?.name);
-  // console.log("Is Your Turn:", isPlayerTurn);
 
   const sendChatMessage = () => {
     if (!chatInput.trim()) return;
@@ -113,10 +113,12 @@ function GameScreen({
 
   return (
     <div className="game-screen">
-      <h2>Current Player: {currentPlayer}</h2>
-      <h3>Your Player: {localPlayer?.name}</h3>
-      <h3>Current Character: {character}</h3>
-      <h3>Current Location: {location}</h3>
+      <h2>Your Player: {localPlayer?.name}</h2>
+      <h2>Your Character: {localPlayer?.character}</h2>
+      <h2>Your Location: {localPlayer?.location}</h2>
+      <h3>Current Player: {currentPlayer}</h3>
+      <h3>Current Player's Character: {character}</h3>
+      <h3>Current Player's Location: {location}</h3>
       <div className="chat-container">
         <div className="chat-messages">
           {!isPlayerTurn && (
@@ -176,27 +178,35 @@ function GameScreen({
       ) : (
         <p>Loading game board...</p>
       )}
+
+      {/* Actions */}
       <div>
-        <h3>Make a Move</h3>
-        <select
-          onChange={(e) => setMoveChoice(e.target.value)}
-          value={moveChoice}
-          disabled={!isPlayerTurn}
-        >
-          <option value="">Select Move</option>
-          {moves.map((move, index) => (
-            <option key={index} value={move}>
-              {move}
-            </option>
-          ))}
-        </select>
-        <button onClick={handleMove} disabled={!isPlayerTurn}>
-          Move
-        </button>
+        {!cannotMove ? (
+        <div>
+          <h3>Make a Move</h3>
+          <select
+            onChange={(e) => setMoveChoice(e.target.value)}
+            value={moveChoice}
+            disabled={!isPlayerTurn}
+          >
+            <option value="">Select Move</option>
+            {moves.map((move, index) => (
+              <option key={index} value={move}>
+                {move}
+              </option>
+            ))}
+          </select>
+          <button onClick={handleMove} disabled={!isPlayerTurn}>
+            Move
+          </button>
+        </div>
+        ) : (
+          <h4>No possible moves available.</h4>
+        )}
       </div>
 
       <div>
-        {inRoom ? (
+        {(movedBySuggestion || (playerMoved && inRoom)) && (
             <div>
                 <h3>Make a Suggestion</h3>
                 <select
@@ -240,8 +250,6 @@ function GameScreen({
                 Suggest
                 </button>
             </div>
-        ) : (
-            <h4>Can't make a suggestion if your player is not in a room.</h4>
         )}
       </div>
 
@@ -318,9 +326,13 @@ function GameScreen({
       </div>
 
       <div>
-        <button onClick={handleEndTurn} disabled={!isPlayerTurn}>
-          End Turn
-        </button>
+        {actionMade && (
+        <div>
+          <button onClick={handleEndTurn} disabled={!isPlayerTurn}>
+            End Turn
+          </button>
+        </div>
+        )}
       </div>
 
       <div className="players-info">
