@@ -3,10 +3,10 @@ eventlet.monkey_patch()
 import random
 import json
 import os
+import uuid
 from flask_cors import CORS
 from flask import Flask, request, jsonify, Response
 from flask_socketio import SocketIO, send, emit
-import uuid
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
 from game_system.solution import Solution

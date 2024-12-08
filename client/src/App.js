@@ -9,7 +9,7 @@ import EndScreen from "./EndScreen.js";
 // Create socket connection
 const socket = io("https://clue-game-server.onrender.com/", {
   // const socket = io("http://localhost:5000", {
-  // const socket = io("http://127.0.0.1:5000", {
+  //   const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
