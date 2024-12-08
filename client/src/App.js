@@ -281,6 +281,9 @@ function App() {
 
   const handleEndTurn = () => {
     setMovedBySuggestion(false);
+    setActionMade(false);
+    setCannotMove(false);
+    setPlayerMoved(false);
     socket.emit("end_turn");
   };
 
