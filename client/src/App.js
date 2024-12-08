@@ -7,9 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-const socket = io("https://clue-game-server.onrender.com/", {
+// const socket = io("https://clue-game-server.onrender.com/", {
 // const socket = io("http://localhost:5000", {
-// const socket = io("http://127.0.0.1:5000", {
+const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -29,6 +29,8 @@ function App() {
   const [disproveSuggestionState, setDisproveSuggestionState] = useState(false);
   const [messages, setMessages] = useState([]);
   const [inRoom, setInRoom] = useState(false);
+  const [playerMoved, setPlayerMoved] = useState(false);
+  const [actionMade, setActionMade] = useState(false);
 
   useEffect(() => {
     socket.on("player_added", (data) => {
@@ -82,6 +84,11 @@ function App() {
     });
 
     socket.on("next_turn", (data) => {
+      setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
       // socket.emit("get_players");
@@ -105,10 +112,9 @@ function App() {
         ...prev,
         { player_id: "SYSTEM", player_name: "Game", message: data.message },
       ]);
+      setPlayerMoved(true);
       setGameState(data.board);
-      setCurrentPlayer(data.current_player);
-      setCharacter(data.character);
-      socket.emit("get_moves", data.current_player);
+      //socket.emit("get_moves", data.current_player);
     });
 
     socket.on("suggestion_made", (data) => {
@@ -140,7 +146,6 @@ function App() {
     });
 
     socket.on("suggestion_disproved", (data) => {
-      console.log("HI")
       setMessage(data.message);
       setMessages((prev) => [
         ...prev,
@@ -206,7 +211,6 @@ function App() {
       setInRoom(false);
     }
     socket.emit("detailed_board");
-    //socket.emit("end_turn");
   };
 
   const handleSuggestion = (suggestion) => {
@@ -227,7 +231,6 @@ function App() {
     console.log(currentPlayer)
     socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
     setDisproveSuggestionState(false);
-    socket.emit("end_turn");
   };
 
   const handleAccusation = (accusation) => {
@@ -236,6 +239,10 @@ function App() {
       return;
     }
     socket.emit("make_accusation", accusation);
+    socket.emit("end_turn");
+  };
+
+  const handleEndTurn = () => {
     socket.emit("end_turn");
   };
 
@@ -252,6 +259,7 @@ function App() {
           onSuggestion={handleSuggestion}
           onAccusation={handleAccusation}
           onDisproveSuggestion={handleDisproveSuggestion}
+          onEndTurn={handleEndTurn}
           moves={moves}
           location={location}
           gameState={gameState}

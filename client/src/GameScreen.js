@@ -7,6 +7,7 @@ function GameScreen({
   onSuggestion,
   onAccusation,
   onDisproveSuggestion,
+  onEndTurn,
   moves,
   location,
   gameState,
@@ -93,6 +94,10 @@ function GameScreen({
       return;
     }
     onAccusation(accusation);
+  };
+
+  const handleEndTurn = () => {
+    onEndTurn();
   };
 
   const isPlayerTurn = currentPlayer === localPlayer?.name;
@@ -311,6 +316,13 @@ function GameScreen({
           Accuse
         </button>
       </div>
+
+      <div>
+        <button onClick={handleEndTurn} disabled={!isPlayerTurn}>
+          End Turn
+        </button>
+      </div>
+
       <div className="players-info">
         <h3>Player's Cards</h3>
             {localPlayer ? (
