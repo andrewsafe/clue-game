@@ -160,27 +160,27 @@ function GameScreen({
         {/* Actions */}
         <div>
         {!cannotMove ? (
-        <div>
-          <h3>Make a Move</h3>
-          <select
-            onChange={(e) => setMoveChoice(e.target.value)}
-            value={moveChoice}
-            disabled={!isPlayerTurn}
-          >
-            <option value="">Select Move</option>
-            {moves.map((move, index) => (
-              <option key={index} value={move}>
-                {move}
-              </option>
-            ))}
-          </select>
-          <button onClick={handleMove} disabled={!isPlayerTurn}>
-            Move
-          </button>
-        </div>
-        ) : (
-          <h4>No possible moves available.</h4>
-        )}
+          <div>
+            <h3>Make a Move</h3>
+            <select
+              onChange={(e) => setMoveChoice(e.target.value)}
+              value={moveChoice}
+              disabled={!isPlayerTurn}
+            >
+              <option value="">Select Move</option>
+              {moves.map((move, index) => (
+                <option key={index} value={move}>
+                  {move}
+                </option>
+              ))}
+            </select>
+            <button onClick={handleMove} disabled={!isPlayerTurn}>
+              Move
+            </button>
+          </div>
+          ) : (
+            <h4>No possible moves available.</h4>
+          )}
         </div>
 
         <div>
@@ -231,11 +231,10 @@ function GameScreen({
                 Suggest
               </button>
             </div>
-          ) : (
-            <h4>Can't make a suggestion if your player is not in a room.</h4>
           )}
         </div>
-
+        
+        <div>
         {disproveSuggestionState && revealOptions.length > 0 && (
           <div>
             <h3>Select a Card to Disprove</h3>
@@ -255,6 +254,7 @@ function GameScreen({
             </button>
           </div>
         )}
+        </div>
 
         <div>
           <h3>Make an Accusation</h3>
@@ -308,16 +308,18 @@ function GameScreen({
           </button>
         </div>
 
-      <div>
-        {actionMade && (
         <div>
-          <button
-            class="red-button"
-            onClick={handleEndTurn}
-            disabled={!isPlayerTurn}
-          >
-            End Turn
-          </button>
+          {actionMade && (
+          <div>
+            <button
+              class="red-button"
+              onClick={handleEndTurn}
+              disabled={!isPlayerTurn}
+            >
+              End Turn
+            </button>
+          </div>
+          )}
         </div>
       </div>
 
@@ -464,6 +466,7 @@ function GameScreen({
             <p>No players found</p>
           )}
         </div>
+
         <div className="chat-container">
           <div className="chat-messages">
             {!isPlayerTurn && (
@@ -497,6 +500,7 @@ function GameScreen({
               );
             })}
           </div>
+
           <div className="chat-input">
             <input
               type="text"
