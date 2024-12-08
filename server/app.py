@@ -1,5 +1,3 @@
-import eventlet
-eventlet.monkey_patch()
 import random
 import json
 import os
@@ -16,10 +14,10 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
-CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
-# CORS(app, origins=["http://192.168.1.22:3001"])
-# socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
+# CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
+# socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+CORS(app, origins=["http://192.168.1.22:3001"])
+socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
 # CORS(app, origin=["http://localhost:3000"])
 # socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
@@ -282,6 +280,7 @@ def player_turn(data):
 @socketio.on('end_turn')
 def end_turn():
     # Move to the next player
+    current_player = game_system.active_players[game_system.counter].name
     game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
     next_player = game_system.active_players[game_system.counter].name
     if len(game_system.active_players) == 1:
@@ -289,7 +288,11 @@ def end_turn():
             'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
             'winner': next_player               
         }, broadcast=True)
-    emit('next_turn', {'current_player': next_player, 'character': game_system.active_players[game_system.counter].character}, broadcast=True)
+    emit('next_turn', {
+        'message': f"Player {current_player} has ended their turn. It's now Player {next_player}'s turn.",
+        'current_player': next_player, 
+        'character': game_system.active_players[game_system.counter].character
+        }, broadcast=True)
 
 @socketio.on('get_moves')
 def get_moves(current_player):  # Add 'data' as a placeholder argument
@@ -347,24 +350,9 @@ def make_move(data):
         return
     
     board_manager.moveCharToRoom(character, data)
-    resultList={"message": f"{character} moved to {data}."}
     try:
         board_state = board_manager.draw_detailed_board()
-        resultList["board"]=board_state
-        
-        #working code, a copy of end_turn
-        # Move to the next player
-        game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
-        next_player = game_system.active_players[game_system.counter].name
-        if len(game_system.active_players) == 1:
-            emit('game_over', {
-                'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
-                'winner': next_player               
-            })
-        resultList['current_player']=next_player
-        resultList['character']=game_system.active_players[game_system.counter].character
-
-        emit('move_made', resultList, broadcast=True)
+        emit('move_made', {"message": f"{character} moved to {data}.", "board": board_state}, broadcast=True)
     except Exception as e:
         emit('move_made', {"error": str(e)}, broadcast=True)
 
@@ -508,6 +496,6 @@ def handle_chat_message(data):
 
     
 if __name__ == "__main__":
-    # socketio.run(app, debug=True)
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    socketio.run(app, debug=True)
+    # port = int(os.environ.get("PORT", 5000))
+    # app.run(host="0.0.0.0", port=port)
