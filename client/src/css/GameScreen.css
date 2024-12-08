@@ -1,93 +1,37 @@
 .game-screen {
   font-family: Arial, sans-serif;
   color: #e0e0e0;
-  max-width: 800px;
+  /* max-width: 800px; */
   margin: 20px auto;
   padding: 20px;
   background-color: #121212;
   border-radius: 8px;
   box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.6);
-}
-
-h2,
-h3 {
-  color: #80d8ff;
-}
-
-select,
-button {
-  padding: 8px;
-  margin-top: 5px;
-  font-size: 14px;
-  border-radius: 4px;
-  border: 1px solid #004d99;
-  color: #e0e0e0;
-  background-color: #1e1e1e;
-  cursor: pointer;
-}
-
-button {
-  background-color: #1565c0;
-  color: #e0e0e0;
-  font-weight: bold;
-  margin-left: 5px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #0d47a1;
-}
-
-.players-info {
-  margin-top: 20px;
-}
-
-.player-list {
-  list-style: none;
-  padding: 0;
-}
-
-.player-item {
-  padding: 10px;
-  margin-bottom: 10px;
-  background-color: #1a1a1a;
-  border-radius: 5px;
-  border-left: 4px solid #1565c0;
-  color: #bbdefb;
-}
-
-.cards-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 5px;
+  gap: 20px;
+  height: 90vh;
 }
 
-.card-item {
-  background-color: #263238;
-  padding: 5px 8px;
-  border-radius: 4px;
-  font-size: 0.85em;
-  color: #80d8ff;
+.left-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.no-cards {
-  color: #888;
-  font-style: italic;
-  margin-left: 10px;
+.center-panel {
+  flex: 2;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.game-options {
-  margin-top: 15px;
-  padding-top: 10px;
-  border-top: 1px solid #004d99;
+.right-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
 
-select {
-  width: 100%;
-  margin-bottom: 10px;
-  background-color: #1e1e1e;
-}
 .chat-container {
   margin-top: 20px;
   background-color: #1a1a1a;
@@ -156,8 +100,8 @@ select {
   padding: 8px;
   font-size: 14px;
   border-radius: 4px;
-  border: 1px solid #004d99;
-  background-color: #1565c0;
+  border: 1px solid #1b5e20;
+  background-color: #2e7d32;
   color: #e0e0e0;
   font-weight: bold;
   cursor: pointer;
@@ -165,7 +109,7 @@ select {
 }
 
 .chat-input button:hover {
-  background-color: #0d47a1;
+  background-color: #1b5e20;
 }
 .system-message {
   background-color: transparent;
@@ -173,6 +117,7 @@ select {
   font-style: italic;
   margin: 5px 0;
 }
+
 
 /*==============================================================
 ===============================================================
@@ -236,3 +181,99 @@ text-align: center;
   font-size: 15px;
   padding: 0px 0;
 }
+
+h2,
+h3 {
+  color: #80d8ff;
+}
+
+select,
+button {
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 14px;
+  border-radius: 4px;
+  margin-left: 5px;
+  border: 1px solid #004d99;
+  background-color: #1565c0;
+  color: #e0e0e0;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.red-button {
+  padding: 8px;
+  margin-top: 5px;
+  font-size: 14px;
+  border-radius: 4px;
+  margin-left: 5px;
+  border: 1px solid #b71c1c;
+  background-color: #c62828;
+  color: #e0e0e0;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.red-button:hover {
+  background-color: #b71c1c;
+}
+
+button:hover {
+  background-color: #0d47a1;
+}
+
+.players-info {
+  margin-top: 20px;
+}
+
+.player-list {
+  list-style: none;
+  padding: 0;
+}
+
+.player-item {
+  padding: 10px;
+  margin-bottom: 10px;
+  background-color: #1a1a1a;
+  border-radius: 5px;
+  border-left: 4px solid #1565c0;
+  color: #bbdefb;
+}
+
+.cards-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 5px;
+}
+
+.card-item {
+  background-color: #263238;
+  padding: 5px 8px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  color: #80d8ff;
+}
+
+.no-cards {
+  color: #888;
+  font-style: italic;
+  margin-left: 10px;
+}
+
+.game-options {
+  margin-top: 15px;
+  padding-top: 10px;
+  border-top: 1px solid #004d99;
+}
+
+select {
+  width: 100%;
+  margin-bottom: 10px;
+  background-color: #1e1e1e;
+  border: 1px solid #004d99;
+  color: #e0e0e0;
+}
+

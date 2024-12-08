@@ -3,10 +3,10 @@ eventlet.monkey_patch()
 import random
 import json
 import os
+import uuid
 from flask_cors import CORS
 from flask import Flask, request, jsonify, Response
 from flask_socketio import SocketIO, send, emit
-import uuid
 from game_system.game_system import GameSystem
 from game_system.turn_manager import TurnManager
 from game_system.solution import Solution
@@ -107,7 +107,45 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client disconnected")
+    """
+    Handle player disconnection. Remove the disconnected player from the game and notify all clients.
+    """
+    socket_id = request.sid  # Get the socket ID of the disconnected client
+    player_id = socket_player_map.pop(socket_id, None)  # Remove the mapping for this socket
+
+    if player_id:
+        # Find the player in the game system
+        player = next((p for p in game_system.players if p.id == player_id), None)
+        if player:
+            print(f"{player.name} ({player_id}) disconnected and will be removed from the game.")
+            # Remove player from the active game
+            game_system.players.remove(player)
+            if player in game_system.active_players:
+                game_system.active_players.remove(player)
+            
+            # Adjust the turn counter if necessary
+            if len(game_system.active_players) > 0:
+                game_system.counter %= len(game_system.active_players)
+            else:
+                game_system.counter = 0  # Reset if no active players
+            
+            # Notify all clients about the updated game state
+            emit('player_disconnected', {
+                "message": f"{player.name} has disconnected.",
+                "remaining_players": [p.name for p in game_system.active_players]
+            }, broadcast=True)
+
+            # Check if the game should end (e.g., only one player remains)
+            if len(game_system.active_players) == 1:
+                winner = game_system.active_players[0]
+                emit('game_over', {
+                    "message": f"{winner.name} wins by default as the only remaining player.",
+                    "winner": winner.name
+                }, broadcast=True)
+
+    else:
+        print("Disconnected client was not associated with any player.")
+
 
 @socketio.on('detailed_board')
 def detailed_board(data=None):
@@ -282,6 +320,7 @@ def player_turn(data):
 @socketio.on('end_turn')
 def end_turn():
     # Move to the next player
+    current_player = game_system.active_players[game_system.counter].name
     game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
     next_player = game_system.active_players[game_system.counter].name
     if len(game_system.active_players) == 1:
@@ -289,7 +328,11 @@ def end_turn():
             'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
             'winner': next_player               
         }, broadcast=True)
-    emit('next_turn', {'current_player': next_player, 'character': game_system.active_players[game_system.counter].character}, broadcast=True)
+    emit('next_turn', {
+        'message': f"Player {current_player} has ended their turn. It's now Player {next_player}'s turn.",
+        'current_player': next_player, 
+        'character': game_system.active_players[game_system.counter].character
+        }, broadcast=True)
 
 @socketio.on('get_moves')
 def get_moves(current_player):  # Add 'data' as a placeholder argument
@@ -347,24 +390,9 @@ def make_move(data):
         return
     
     board_manager.moveCharToRoom(character, data)
-    resultList={"message": f"{character} moved to {data}."}
     try:
         board_state = board_manager.draw_detailed_board()
-        resultList["board"]=board_state
-        
-        #working code, a copy of end_turn
-        # Move to the next player
-        game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
-        next_player = game_system.active_players[game_system.counter].name
-        if len(game_system.active_players) == 1:
-            emit('game_over', {
-                'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
-                'winner': next_player               
-            })
-        resultList['current_player']=next_player
-        resultList['character']=game_system.active_players[game_system.counter].character
-
-        emit('move_made', resultList, broadcast=True)
+        emit('move_made', {"message": f"{character} moved to {data}.", "board": board_state}, broadcast=True)
     except Exception as e:
         emit('move_made', {"error": str(e)}, broadcast=True)
 
