@@ -44,7 +44,6 @@ function GameScreen({
   location,
   gameState,
   character,
-  players,
   playerId,
   localPlayer,
   revealOptions,
@@ -52,6 +51,10 @@ function GameScreen({
   socket,
   messages,
   inRoom,
+  playerMoved,
+  actionMade,
+  cannotMove,
+  movedBySuggestion
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -133,9 +136,6 @@ function GameScreen({
   };
 
   const isPlayerTurn = currentPlayer === localPlayer?.name;
-  // console.log("Current Player:", currentPlayer);
-  // console.log("Your Player:", players[0]?.name);
-  // console.log("Is Your Turn:", isPlayerTurn);
 
   const sendChatMessage = () => {
     if (!chatInput.trim()) return;
@@ -147,11 +147,19 @@ function GameScreen({
     <div className="game-screen">
       <div className="left-panel">
         <h2>
-          Current Player: {currentPlayer} <br />
           Your Player: {localPlayer?.name} <br />
-          Current Character: {character} <br />
-          Current Location: {location}
+          Your Character: {localPlayer?.character} <br />
+          Your Location: {localPlayer?.location} <br />
         </h2>
+        <h3>
+          Current Player: {currentPlayer} <br />
+          Current Player's Character: {character} <br />
+          Current Player's Location: {location} <br />
+        </h3>
+
+        {/* Actions */}
+        <div>
+        {!cannotMove ? (
         <div>
           <h3>Make a Move</h3>
           <select
@@ -170,9 +178,13 @@ function GameScreen({
             Move
           </button>
         </div>
+        ) : (
+          <h4>No possible moves available.</h4>
+        )}
+        </div>
 
         <div>
-          {inRoom ? (
+          {(movedBySuggestion || (playerMoved && inRoom)) && (
             <div>
               <h3>Make a Suggestion</h3>
               <select
@@ -296,6 +308,8 @@ function GameScreen({
           </button>
         </div>
 
+      <div>
+        {actionMade && (
         <div>
           <button
             class="red-button"

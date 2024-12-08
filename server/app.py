@@ -214,38 +214,13 @@ def get_players():
         player_info = {
             "id": player.id,
             "name": player.name,
+            "character": player.character,
+            "location": player.position,
             "cards": player_cards
         }
         players.append(player_info)
     # Emit only to the requesting client
     emit('return_players', {"players": players}, broadcast=True)
-
-@socketio.on('get_local_player')
-def get_local_player():
-    """
-    WebSocket event to return player information and their assigned cards.
-    """
-    # Get the socket ID of the requesting client
-    socket_id = request.sid
-    # Get the player_id associated with this socket
-    player_id = socket_player_map.get(socket_id)
-    if not player_id:
-        emit('return_players', {"error": "Player ID not found for your session"})
-        return
-    # Find the player object
-    player = next((p for p in game_system.players if p.id == player_id), None)
-    if not player:
-        emit('return_players', {"error": "Player not found"})
-        return
-    # Prepare player's card data
-    player_cards = [card.to_dict() for card in player.cards]
-    player_info = {
-        "id": player.id,
-        "name": player.name,
-        "cards": player_cards
-    }
-    # Emit only to the requesting client
-    emit('return_local_player', {"player": player_info})
 
 @socketio.on('get_current_player')
 def get_current_player(data=None):  # Add 'data' as a default argument
@@ -321,17 +296,20 @@ def player_turn(data):
 def end_turn():
     # Move to the next player
     current_player = game_system.active_players[game_system.counter].name
+    game_system.active_players[game_system.counter].moved_by_suggestion = False
     game_system.counter = (game_system.counter + 1) % len(game_system.active_players)
-    next_player = game_system.active_players[game_system.counter].name
+    next_player = game_system.active_players[game_system.counter]
     if len(game_system.active_players) == 1:
         emit('game_over', {
-            'message': f"Player {next_player} wins by default, as everyone else has made an incorrect accusation.",
-            'winner': next_player               
+            'message': f"Player {next_player.name} wins by default, as everyone else has made an incorrect accusation.",
+            'winner': next_player.name               
         }, broadcast=True)
+        return
     emit('next_turn', {
-        'message': f"Player {current_player} has ended their turn. It's now Player {next_player}'s turn.",
-        'current_player': next_player, 
-        'character': game_system.active_players[game_system.counter].character
+        'message': f"Player {current_player} has ended their turn. It's now Player {next_player.name}'s turn.",
+        'current_player': next_player.name, 
+        'character': next_player.character,
+        'moved_by_suggestion': next_player.moved_by_suggestion
         }, broadcast=True)
 
 @socketio.on('get_moves')
@@ -437,6 +415,11 @@ def make_suggestion(data):
 
     board_manager.moveCharToRoom(suggestion.character.name, suggestion.room.name)
 
+    # set player that was moved by suggestion property to True
+    for p in game_system.players:
+        if p.character == suggestion.character.name:
+            p.moved_by_suggestion = True
+
     # message = ""
     for p in game_system.players:
         incorrect_cards = suggestion.checkSuggestion(p.cards)
@@ -449,14 +432,14 @@ def make_suggestion(data):
             }, room=suggesting_player_socket_id)
             # Notify other players that the suggestion was disproved without revealing cards
             emit('suggestion_made', {
-                "message": f"Player {player.name}'s suggestion is being disproven by Player {p.name}."
+                "message": f"Player {player.name}'s suggestion is being disproven by Player {p.name}.",
             }, broadcast=True)
             break
 
     if len(incorrect_cards) == 0:
         # If no one could disprove, notify all
         emit('suggestion_made', {
-            "message": f"No one could disprove {player.name}'s suggestion."
+            "message": f"No one could disprove {player.name}'s suggestion.",
         }, broadcast=True)
 
 
@@ -511,7 +494,7 @@ def make_accusation(data):
         game_system.active_players.pop(game_system.counter)
         game_system.counter -= 1
         emit('accusation_made', {
-            "message": f"{player.name} made an incorrect accusation and has lost."
+            "message": f"Player {player.name} made an incorrect accusation and has lost the game."
         }, broadcast=True)
     
 @socketio.on('chat_message')

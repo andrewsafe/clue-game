@@ -14,6 +14,7 @@ class Player:
         self.character = character  # Add character attribute
         self.position = position  # Add position attribute
         self.cards = []  # List to hold the player's cards
+        self.moved_by_suggestion = False
 
     def add_card(self, card):
         self.cards.append(card)
