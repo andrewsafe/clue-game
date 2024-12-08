@@ -1,6 +1,38 @@
 import React, { useState } from "react";
 import "./css/GameScreen.css";
 
+//==================================================
+//                 IMAGE REFERENCES
+//==================================================
+const tileBasePath = 'images/tiles/';
+const charBasePath = 'images/characters/';
+
+const characterIcons = {
+  'Miss Scarlett': charBasePath + 'MissScarlett.png',
+  'Professor Plum': charBasePath + 'ProfessorPlum.png',
+  'Colonel Mustard': charBasePath + 'ColonelMustard.png',
+  'Mrs. Peacock': charBasePath + 'MrsPeacock.png',
+  'Reverend Green': charBasePath + 'ReverendGreen.png',
+  'Mrs. White': charBasePath + 'MrsWhite.png'
+};
+
+const tileImages = {
+  'empty': tileBasePath + 'empty.png',
+  'blocked': tileBasePath + 'blocked.png',
+  'room': tileBasePath + 'room.png',
+  'study': tileBasePath + 'study.png',
+  'hall': tileBasePath + 'Hall.png',
+  'lounge': tileBasePath + 'Lounge.png',
+  'library': tileBasePath + 'Library.png',
+  'diningroom': tileBasePath + 'DiningRoom.png',
+  'conservatory': tileBasePath + 'Conservatory.png',
+  'ballroom': tileBasePath + 'Ballroom.png',
+  'kitchen': tileBasePath + 'Kitchen.png',
+  'billiardroom': tileBasePath + 'BilliardRoom.png',
+  'hallway_horizontal': tileBasePath + 'HallwayHorizontal.png',
+  'hallway_vertical': tileBasePath + 'HallwayVertical.png'
+};
+
 function GameScreen({
   currentPlayer,
   onMove,
@@ -160,17 +192,92 @@ function GameScreen({
         <div className="board">
           {gameState.map((row, rowIndex) => (
             <div key={rowIndex} className="board-row">
-              {row.map((cell, cellIndex) => (
-                <div key={cellIndex} className="board-cell">
-                  <pre>{cell}</pre>
-                </div>
-              ))}
+              {row.map((cell, cellIndex) => {
+                if (cell && typeof cell === 'object' && cell.type) {
+                  const { type, name, characters } = cell;
+
+                  let tileImage = tileImages['empty'];
+
+                  if (type === 'blocked') {
+                    tileImage = tileImages['blocked'];
+                  } else if (type === 'hallway') {
+                    // Determine if it's horizontal or vertical
+                    // Check neighbors to decide orientation
+                    let isHorizontal = false;
+                    let isVertical = false;
+
+                    // Check left neighbor
+                    if (cellIndex > 0 && row[cellIndex - 1] && row[cellIndex - 1].type !== 'blocked') {
+                      isHorizontal = true;
+                    }
+                    // Check right neighbor
+                    if (cellIndex < row.length - 1 && row[cellIndex + 1] && row[cellIndex + 1].type !== 'blocked') {
+                      isHorizontal = true;
+                    }
+
+                    // Check top neighbor
+                    if (rowIndex > 0 && gameState[rowIndex - 1][cellIndex] && gameState[rowIndex - 1][cellIndex].type !== 'blocked') {
+                      isVertical = true;
+                    }
+                    // Check bottom neighbor
+                    if (rowIndex < gameState.length - 1 && gameState[rowIndex + 1][cellIndex] && gameState[rowIndex + 1][cellIndex].type !== 'blocked') {
+                      isVertical = true;
+                    }
+
+                    // Choose the tile image based on orientation
+                    if (isVertical && !isHorizontal) {
+                      tileImage = tileImages['hallway_vertical'];
+                    } else if (!isVertical && isHorizontal) {
+                      tileImage = tileImages['hallway_horizontal'];
+                    } else {
+                      // If it's connected both horizontally and vertically, 
+                      // pick one or add logic for intersections.
+                      // For simplicity, assume horizontal if both are true:
+                      tileImage = tileImages['hallway_horizontal'];
+                    }
+                  } else if (type === 'room') {
+                    const roomKey = name.toLowerCase().replace(/\s/g, '');
+                    tileImage = tileImages[roomKey] || tileImages['room'];
+                  }
+
+                  const characterIconSrcs = (characters || []).map(charName => {
+                    const iconFilename = characterIcons[charName];
+                    return iconFilename || null;
+                  }).filter(src => src !== null);
+
+                  return (
+                    <div key={cellIndex} className={`board-cell ${type}`} style={{ backgroundImage: `url(${tileImage})` }}>
+                      {type === 'room' && (
+                        <div className="room-label">{name}</div>
+                      )}
+                      {type === 'hallway' && (
+                        <div className="hallway-label">{name}</div>
+                      )}
+                      {characterIconSrcs.length > 0 && (
+                        <div className="character-icons-container">
+                          {characterIconSrcs.map((src, i) => (
+                            <img key={i} src={src} alt={characters[i]} className="character-icon" />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                } else {
+                  // Fallback if cell isn't structured
+                  return (
+                    <div key={cellIndex} className="board-cell">
+                      <pre>{cell}</pre>
+                    </div>
+                  );
+                }
+              })}
             </div>
           ))}
         </div>
       ) : (
         <p>Loading game board...</p>
       )}
+
       <div>
         <h3>Make a Move</h3>
         <select

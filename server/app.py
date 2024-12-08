@@ -16,12 +16,12 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
-CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+# CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
+# socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
 # CORS(app, origins=["http://192.168.1.22:3001"])
 # socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
-# CORS(app, origin=["http://localhost:3000"])
-# socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
+CORS(app, origin=["http://localhost:3000"])
+socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
@@ -506,8 +506,12 @@ def handle_chat_message(data):
         'message': message
     }, broadcast=True)
 
-    
+
 if __name__ == "__main__":
-    # socketio.run(app, debug=True)
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
+    
+# if __name__ == "__main__":
+#     socketio.run(app, debug=True)
+#     port = int(os.environ.get("PORT", 5000))
+#     #app.run(host="0.0.0.0", port=port)
