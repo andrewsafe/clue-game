@@ -17,27 +17,7 @@ Frontend:
 React.js: Handles the UI with components for different screens (Start, Lobby, Game, End).
 Socket.IO Client: Connects to the Flask backend for real-time updates.
 CSS: Custom styling for a dark, modern theme.
-Project Structure
-project-root/
-├─ app.py # Flask backend with Socket.IO integration
-├─ game_system/ # Directory containing game logic classes and modules
-├─ client/
-│ ├─ src/
-│ │ ├─ App.js # Entry point for the React application
-│ │ ├─ StartScreen.js # Screen where players join the game
-│ │ ├─ LobbyScreen.js # Screen showing connected players before start
-│ │ ├─ GameScreen.js # Main gameplay interface, including chat and board
-│ │ ├─ EndScreen.js # Display winner and end-game message
-│ │ ├─ css/
-│ │ │ ├─ App.css
-│ │ │ ├─ GameScreen.css # Styling for the game screen and chat UI
-│ │ │ └─ ...
-│ │ └─ ...
-│ ├─ public/
-│ └─ ...
-├─ requirements.txt # Python dependencies
-├─ package.json # Frontend dependencies and scripts (if using create-react-app)
-└─ README.md # This readme
+
 Getting Started
 Backend Setup
 Install Python Dependencies:
