@@ -1,3 +1,5 @@
+import eventlet
+eventlet.monkey_patch()
 import random
 import json
 import os
@@ -14,10 +16,10 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
-# CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-# socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
-CORS(app, origins=["http://192.168.1.22:3001"])
-socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
+CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
+socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+# CORS(app, origins=["http://192.168.1.22:3001"])
+# socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
 # CORS(app, origin=["http://localhost:3000"])
 # socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
@@ -105,7 +107,45 @@ def handle_connect():
 
 @socketio.on('disconnect')
 def handle_disconnect():
-    print("Client disconnected")
+    """
+    Handle player disconnection. Remove the disconnected player from the game and notify all clients.
+    """
+    socket_id = request.sid  # Get the socket ID of the disconnected client
+    player_id = socket_player_map.pop(socket_id, None)  # Remove the mapping for this socket
+
+    if player_id:
+        # Find the player in the game system
+        player = next((p for p in game_system.players if p.id == player_id), None)
+        if player:
+            print(f"{player.name} ({player_id}) disconnected and will be removed from the game.")
+            # Remove player from the active game
+            game_system.players.remove(player)
+            if player in game_system.active_players:
+                game_system.active_players.remove(player)
+            
+            # Adjust the turn counter if necessary
+            if len(game_system.active_players) > 0:
+                game_system.counter %= len(game_system.active_players)
+            else:
+                game_system.counter = 0  # Reset if no active players
+            
+            # Notify all clients about the updated game state
+            emit('player_disconnected', {
+                "message": f"{player.name} has disconnected.",
+                "remaining_players": [p.name for p in game_system.active_players]
+            }, broadcast=True)
+
+            # Check if the game should end (e.g., only one player remains)
+            if len(game_system.active_players) == 1:
+                winner = game_system.active_players[0]
+                emit('game_over', {
+                    "message": f"{winner.name} wins by default as the only remaining player.",
+                    "winner": winner.name
+                }, broadcast=True)
+
+    else:
+        print("Disconnected client was not associated with any player.")
+
 
 @socketio.on('detailed_board')
 def detailed_board(data=None):
@@ -496,6 +536,6 @@ def handle_chat_message(data):
 
     
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

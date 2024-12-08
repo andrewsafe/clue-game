@@ -7,9 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("https://clue-game-server.onrender.com/", {
-// const socket = io("http://localhost:5000", {
-const socket = io("http://127.0.0.1:5000", {
+const socket = io("https://clue-game-server.onrender.com/", {
+  // const socket = io("http://localhost:5000", {
+  // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -98,7 +98,7 @@ function App() {
     socket.on("move_options", (data) => {
       setMoves(data.moves);
       setLocation(data.currentLocation);
-      if (data.currentLocation.length < 5 || data.currentLocation[4] !== 'w' ){
+      if (data.currentLocation.length < 5 || data.currentLocation[4] !== "w") {
         setInRoom(true);
       } else {
         setInRoom(false);
@@ -135,7 +135,7 @@ function App() {
     });
 
     socket.on("suggestion_incorrect", (data) => {
-      console.log(data.cards)
+      console.log(data.cards);
       setMessage(data.message);
       setMessages((prev) => [
         ...prev,
@@ -162,6 +162,16 @@ function App() {
       ]);
     });
 
+    socket.on("player_disconnected", (data) => {
+      console.log(data.message);
+      setMessage(data.message);
+      setMessages((prev) => [
+        ...prev,
+        { player_id: "SYSTEM", player_name: "Game", message: data.message },
+      ]);
+      setPlayers(data.remaining_players.map((name) => ({ name })));
+    });
+
     socket.on("game_over", (data) => {
       setWinner(data.winner);
       setMessage(data.message);
@@ -184,6 +194,7 @@ function App() {
       socket.off("suggestion_incorrect");
       socket.off("suggestion_disproved");
       socket.off("chat_broadcast");
+      socket.off("player_disconnected");
       socket.off("game_over");
     };
   }, [playerId]);
@@ -203,9 +214,9 @@ function App() {
       alert("Please select a location to move to.");
       return;
     }
-    setLocation(moveChoice)
+    setLocation(moveChoice);
     socket.emit("make_move", moveChoice);
-    if (moveChoice.length < 5 || moveChoice[4] !== 'w') {
+    if (moveChoice.length < 5 || moveChoice[4] !== "w") {
       setInRoom(true);
     } else {
       setInRoom(false);
@@ -227,9 +238,14 @@ function App() {
       alert("Please select a card to disprove.");
       return;
     }
-    console.log(localPlayer)
-    console.log(currentPlayer)
-    socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
+    console.log(localPlayer);
+    console.log(currentPlayer);
+    socket.emit(
+      "disprove_suggestion",
+      localPlayer.name,
+      revealedCard,
+      currentPlayer
+    );
     setDisproveSuggestionState(false);
   };
 
