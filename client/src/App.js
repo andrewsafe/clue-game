@@ -7,9 +7,9 @@ import GameScreen from "./GameScreen";
 import EndScreen from "./EndScreen.js";
 
 // Create socket connection
-// const socket = io("https://clue-game-server.onrender.com/", {
+const socket = io("https://clue-game-server.onrender.com/", {
   // const socket = io("http://localhost:5000", {
-  const socket = io("http://127.0.0.1:5000", {
+  // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
 
@@ -62,7 +62,7 @@ function App() {
         setPlayers([data.players]);
         for (let player of data.players) {
           if (player.id === playerId) {
-            console.log("Match")
+            console.log("Match");
             setLocalPlayer(player);
           }
         }
@@ -95,8 +95,11 @@ function App() {
       setCurrentPlayer(data.current_player);
       setCharacter(data.character);
 
-      if (localPlayer.name === data.current_player && data.moved_by_suggestion){
-        setMovedBySuggestion(true)
+      if (
+        localPlayer.name === data.current_player &&
+        data.moved_by_suggestion
+      ) {
+        setMovedBySuggestion(true);
       }
       socket.emit("get_moves", data.current_player);
     });
@@ -110,7 +113,7 @@ function App() {
         setInRoom(false);
       }
 
-      if(data.moves.length === 0) {
+      if (data.moves.length === 0) {
         setCannotMove(true);
       }
     });
@@ -222,12 +225,13 @@ function App() {
       alert("Please select a location to move to.");
       return;
     }
-    setLocation(moveChoice)
+    setLocation(moveChoice);
     setMessages((prev) => [
       ...prev,
       {
-        player_id: "SYSTEM", player_name: "Game",
-        message: `You have moved your Character ${character} to Room ${moveChoice}.`
+        player_id: "SYSTEM",
+        player_name: "Game",
+        message: `You have moved your Character ${character} to Room ${moveChoice}.`,
       },
     ]);
     socket.emit("make_move", moveChoice);
@@ -236,9 +240,9 @@ function App() {
     } else {
       setInRoom(false);
     }
-    setLocalPlayer(prevState => ({
-      ...prevState,  // Keep the previous properties
-      location: moveChoice  // Update the location
+    setLocalPlayer((prevState) => ({
+      ...prevState, // Keep the previous properties
+      location: moveChoice, // Update the location
     }));
     setActionMade(true);
     setPlayerMoved(true);
@@ -252,12 +256,14 @@ function App() {
     }
     setMessages((prev) => [
       ...prev,
-      { player_id: "SYSTEM", player_name: "Game", 
-        message: `You are making a suggestion with Suspect: ${suggestion.character}, Weapon: ${suggestion.weapon}, and Room: ${suggestion.room}.`
+      {
+        player_id: "SYSTEM",
+        player_name: "Game",
+        message: `You are making a suggestion with Suspect: ${suggestion.character}, Weapon: ${suggestion.weapon}, and Room: ${suggestion.room}.`,
       },
     ]);
     socket.emit("make_suggestion", suggestion);
-    setActionMade(true)
+    setActionMade(true);
     socket.emit("detailed_board");
   };
 
@@ -267,7 +273,12 @@ function App() {
       return;
     }
     setDisproveSuggestionState(false);
-    socket.emit("disprove_suggestion", localPlayer.name, revealedCard, currentPlayer);
+    socket.emit(
+      "disprove_suggestion",
+      localPlayer.name,
+      revealedCard,
+      currentPlayer
+    );
   };
 
   const handleAccusation = (accusation) => {
