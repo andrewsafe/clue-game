@@ -118,7 +118,6 @@
   margin: 5px 0;
 }
 
-
 /*==============================================================
 ===============================================================
 ===============================================================
@@ -127,7 +126,6 @@
 ===============================================================
 ===============================================================
 */
-
 
 .board {
   display: flex;
@@ -139,11 +137,11 @@
 }
 
 .board-cell {
-  width: 200px; /* Adjust size as needed */
-  height: 200px;
+  width: 150px;
+  height: 150px;
   background-size: cover;
-  position: relative; /* Ensure this is in place */
-  border: 0px solid #ccc; /* Optional: for visual separation */
+  position: relative;
+  border: 0px solid #ccc;
 }
 
 .character-icons-container {
@@ -154,30 +152,32 @@
 }
 
 .character-icon-wrapper {
-display: flex;
-flex-direction: column;
-align-items: center;
-text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
 .character-icon {
-  width: 64px; 
-  height: 64px;
+  width: 40px;
+  height: 40px;
 }
 
 .character-name {
   margin-top: 4px;
-  font-size: 1.0em;
-  color: #000000;
-  text-shadow: 2px 2px 2px rgb(255, 255, 255);
+  font-size: 1em;
+  color: #ffffff;
+  background-color: rgba(0, 0, 0, 0.5);
+  /* text-shadow: 2px 2px 2px rgb(255, 255, 255); */
 }
-.room-label, .hallway-label {
-  position: bottomright; 
+.room-label,
+.hallway-label {
+  position: bottomright;
   bottom: 0;
   left: 0;
   width: 100%;
   text-align: center;
-  background-color: rgba(0, 0, 255, 0.7);
+  background-color: rgba(0, 0, 0, 0.486);
   font-size: 15px;
   padding: 0px 0;
 }
@@ -276,4 +276,3 @@ select {
   border: 1px solid #004d99;
   color: #e0e0e0;
 }
-
