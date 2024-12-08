@@ -26,34 +26,6 @@
   align-items: center;
 }
 
-/* .board {
-  display: grid;
-  gap: 2px;
-  background-color: #333;
-  padding: 100px;
-  border-radius: 8px;
-  max-width: 500px;
-  max-height: 500px;
-}
-
-.board-row {
-  display: flex;
-}
-
-.board-cell {
-  width: 40px;
-  height: 40px;
-  background-color: #1c1c1c;
-  border: 1px solid #004d99;
-  border-radius: 4px;
-  font-size: 0.9em;
-  font-weight: bold;
-  color: #80d8ff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-} */
-
 .right-panel {
   flex: 1;
   display: flex;
@@ -144,6 +116,70 @@
   color: #bbdefb;
   font-style: italic;
   margin: 5px 0;
+}
+
+
+/*==============================================================
+===============================================================
+===============================================================
+                      CLUE BOARD DISPLAY
+===============================================================
+===============================================================
+===============================================================
+*/
+
+
+.board {
+  display: flex;
+  flex-direction: column;
+}
+
+.board-row {
+  display: flex;
+}
+
+.board-cell {
+  width: 200px; /* Adjust size as needed */
+  height: 200px;
+  background-size: cover;
+  position: relative; /* Ensure this is in place */
+  border: 0px solid #ccc; /* Optional: for visual separation */
+}
+
+.character-icons-container {
+  display: flex; /* This ensures icons will be laid out horizontally */
+  gap: 5px; /* Adds spacing between images */
+  align-items: center; /* Vertically center icons if needed */
+  justify-content: flex-start; /* Align them to the left */
+}
+
+.character-icon-wrapper {
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
+}
+
+.character-icon {
+  width: 64px; 
+  height: 64px;
+}
+
+.character-name {
+  margin-top: 4px;
+  font-size: 1.0em;
+  color: #000000;
+  text-shadow: 2px 2px 2px rgb(255, 255, 255);
+}
+.room-label, .hallway-label {
+  position: bottomright; 
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  text-align: center;
+  background-color: rgba(0, 0, 255, 0.7);
+  font-size: 15px;
+  padding: 0px 0;
 }
 
 h2,
@@ -240,3 +276,4 @@ select {
   border: 1px solid #004d99;
   color: #e0e0e0;
 }
+
