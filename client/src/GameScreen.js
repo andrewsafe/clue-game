@@ -247,16 +247,16 @@ function GameScreen({
 
                   return (
                     <div key={cellIndex} className={`board-cell ${type}`} style={{ backgroundImage: `url(${tileImage})` }}>
-                      {type === 'room' && (
-                        <div className="room-label">{name}</div>
-                      )}
-                      {type === 'hallway' && (
-                        <div className="hallway-label">{name}</div>
-                      )}
+                      {type === 'room' && <div className="room-label">{name}</div>}
+                      {type === 'hallway' && <div className="hallway-label">{name}</div>}
+              
                       {characterIconSrcs.length > 0 && (
                         <div className="character-icons-container">
                           {characterIconSrcs.map((src, i) => (
-                            <img key={i} src={src} alt={characters[i]} className="character-icon" />
+                            <div key={i} className="character-icon-wrapper">
+                              <img src={src} alt={characters[i]} className="character-icon" />
+                              <div className="character-name">{characters[i]}</div>
+                            </div>
                           ))}
                         </div>
                       )}

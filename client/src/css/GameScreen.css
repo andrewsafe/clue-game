@@ -202,20 +202,32 @@ select {
 }
 
 .character-icons-container {
-  display: flex; /* Ensures characters display side by side */
+  display: flex; /* This ensures icons will be laid out horizontally */
   gap: 5px; /* Adds spacing between images */
+  align-items: center; /* Vertically center icons if needed */
+  justify-content: flex-start; /* Align them to the left */
+}
+
+.character-icon-wrapper {
+display: flex;
+flex-direction: column;
+align-items: center;
+text-align: center;
 }
 
 .character-icon {
-  position: absolute;
-  top: 5px;
-  left: 5px;
-  width: 64px; /* Adjust size to fit within the cell */
+  width: 64px; 
   height: 64px;
 }
 
+.character-name {
+  margin-top: 4px;
+  font-size: 1.0em;
+  color: #000000;
+  text-shadow: 2px 2px 2px rgb(255, 255, 255);
+}
 .room-label, .hallway-label {
-  position: bottomright; /* This needs to be corrected */
+  position: bottomright; 
   bottom: 0;
   left: 0;
   width: 100%;
