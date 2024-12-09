@@ -79,38 +79,6 @@ function GameScreen({
       alert("Please complete all suggestion fields");
       return;
     }
-
-    switch (suggestion.room) {
-      case "Hall":
-        suggestion.room = "1";
-        break;
-      case "Lounge":
-        suggestion.room = "2";
-        break;
-      case "Library":
-        suggestion.room = "3";
-        break;
-      case "Kitchen":
-        suggestion.room = "4";
-        break;
-      case "Billiard Room":
-        suggestion.room = "5";
-        break;
-      case "Study":
-        suggestion.room = "6";
-        break;
-      case "Ballroom":
-        suggestion.room = "7";
-        break;
-      case "Dining Room":
-        suggestion.room = "8";
-        break;
-      default:
-        suggestion.room = "9";
-        break;
-    }
-
-    console.log("Suggestion: ", suggestion);
     onSuggestion(suggestion);
   };
 
@@ -197,12 +165,12 @@ function GameScreen({
                 disabled={!isPlayerTurn}
               >
                 <option value="">Select Suspect</option>
-                <option value="1">Colonel Mustard</option>
-                <option value="2">Professor Plum</option>
-                <option value="3">Reverend Green</option>
-                <option value="4">Mrs. Peacock</option>
-                <option value="5">Miss Scarlett</option>
-                <option value="6">Mrs. White</option>
+                <option value="1,Colonel Mustard">Colonel Mustard</option>
+                <option value="2,Professor Plum">Professor Plum</option>
+                <option value="3,Reverend Green">Reverend Green</option>
+                <option value="4,Mrs. Peacock">Mrs. Peacock</option>
+                <option value="5,Miss Scarlett">Miss Scarlett</option>
+                <option value="6,Mrs. White">Mrs. White</option>
               </select>
               <select
                 onChange={(e) =>
@@ -211,12 +179,12 @@ function GameScreen({
                 disabled={!isPlayerTurn}
               >
                 <option value="">Select Weapon</option>
-                <option value="1">Dagger</option>
-                <option value="2">Candlestick</option>
-                <option value="3">Revolver</option>
-                <option value="4">Rope</option>
-                <option value="5">Lead Pipe</option>
-                <option value="6">Wrench</option>
+                <option value="1,Dagger">Dagger</option>
+                <option value="2,Candlestick">Candlestick</option>
+                <option value="3,Revolver">Revolver</option>
+                <option value="4,Rope">Rope</option>
+                <option value="5,Lead Pipe">Lead Pipe</option>
+                <option value="6,Wrench">Wrench</option>
               </select>
               <select
                 onChange={(e) =>
