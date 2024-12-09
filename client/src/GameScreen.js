@@ -121,7 +121,7 @@ function GameScreen({
         </h2>
         <h3>
           Current Player: {currentPlayer} <br />
-          C3rrent Player's Character: {character} <br />
+          Current Player's Character: {character} <br />
           Current Player's Location: {location} <br />
         </h3>
 

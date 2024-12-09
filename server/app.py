@@ -486,9 +486,9 @@ def make_accusation(data):
     result = accusation.checkAccusation(solution)
 
     if result:
-        print(f"{player_id} has won the game.")
-        emit('game_over', {"message": f"Correct accusation of Suspect: {suspect}   Weapon: {weapon}   Room: {room}. {player_id} wins!", 
-                           "winner": player_id}, broadcast=True)
+        print(f"{player.name} has won the game.")
+        emit('game_over', {"message": f"Correct accusation of Suspect: {suspect}   Weapon: {weapon}   Room: {room}. {player.name} wins!", 
+                           "winner": player.name}, broadcast=True)
     else:
         # Remove the player from active players
         game_system.active_players.pop(game_system.counter)
