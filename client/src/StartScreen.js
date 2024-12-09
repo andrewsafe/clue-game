@@ -11,7 +11,7 @@ function StartScreen({ onAddPlayer }) {
     };
 
     return (
-        <div>
+        <div className="start-screen">
             <h1>Clue Game</h1>
             <input
                 type="text"

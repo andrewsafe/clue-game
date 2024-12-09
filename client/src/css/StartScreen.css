@@ -19,7 +19,7 @@
 }
 
 .start-screen input[type="text"] {
-    width: 100%;
+    width: 80%;
     padding: 10px;
     margin-bottom: 15px;
     font-size: 1em;
@@ -29,6 +29,7 @@
     border-radius: 4px;
     outline: none;
     transition: border-color 0.3s;
+    
 }
 
 .start-screen input[type="text"]:focus {
@@ -36,7 +37,7 @@
 }
 
 .start-screen button {
-    width: 100%;
+    width: 90%;
     padding: 10px;
     font-size: 1em;
     font-weight: bold;
