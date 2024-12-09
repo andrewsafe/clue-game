@@ -1,7 +1,6 @@
 .game-screen {
   font-family: Arial, sans-serif;
   color: #e0e0e0;
-  /* max-width: 800px; */
   margin: 20px auto;
   padding: 20px;
   background-color: #121212;
@@ -274,4 +273,92 @@ select {
   background-color: #1e1e1e;
   border: 1px solid #004d99;
   color: #e0e0e0;
+}
+
+@media screen and (max-width: 1024px) {
+  .game-screen {
+    padding: 10px;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left-panel,
+  .right-panel {
+    display: none; /* Hide side panels on smaller screens */
+  }
+
+  .center-panel {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .chat-container {
+    margin-top: 10px;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .board-cell {
+    width: 100px; /* Smaller cells for smaller screens */
+    height: 100px;
+  }
+
+  .character-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .room-label,
+  .hallway-label {
+    font-size: 12px;
+  }
+
+  h2,
+  h3 {
+    font-size: 1.2em;
+  }
+
+  select,
+  button {
+    font-size: 12px;
+    padding: 6px;
+  }
+}
+
+@media screen and (max-width: 600px) {
+  .game-screen {
+    margin: 10px;
+    flex-direction: column;
+    height: auto;
+  }
+
+  .chat-container {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  .center-panel {
+    justify-content: center;
+    align-items: center;
+  }
+
+  .board-cell {
+    width: 80px;
+    height: 80px;
+  }
+
+  .character-name {
+    font-size: 0.8em;
+  }
+
+  .player-item {
+    padding: 8px;
+    font-size: 12px;
+  }
+
+  select,
+  button {
+    font-size: 10px;
+    padding: 5px;
+  }
 }
