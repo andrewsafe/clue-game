@@ -254,14 +254,50 @@ function App() {
       alert("Please complete all suggestion fields.");
       return;
     }
+    let [charId, charStr] = suggestion.character.split(",");
+    let [weaponId, weaponStr] = suggestion.weapon.split(",");
+
     setMessages((prev) => [
       ...prev,
       {
         player_id: "SYSTEM",
         player_name: "Game",
-        message: `You are making a suggestion with Suspect: ${suggestion.character}, Weapon: ${suggestion.weapon}, and Room: ${suggestion.room}.`,
+        message: `You are making a suggestion with Suspect: ${charStr}, Weapon: ${weaponStr}, and Room: ${suggestion.room}.`,
       },
     ]);
+
+    suggestion.character = charId;
+    suggestion.weapon = weaponId;
+    switch (suggestion.room) {
+      case "Hall":
+        suggestion.room = "1";
+        break;
+      case "Lounge":
+        suggestion.room = "2";
+        break;
+      case "Library":
+        suggestion.room = "3";
+        break;
+      case "Kitchen":
+        suggestion.room = "4";
+        break;
+      case "Billiard Room":
+        suggestion.room = "5";
+        break;
+      case "Study":
+        suggestion.room = "6";
+        break;
+      case "Ballroom":
+        suggestion.room = "7";
+        break;
+      case "Dining Room":
+        suggestion.room = "8";
+        break;
+      default:
+        suggestion.room = "9";
+        break;
+    }
+    console.log(suggestion);
     socket.emit("make_suggestion", suggestion);
     setActionMade(true);
     socket.emit("detailed_board");
