@@ -103,9 +103,9 @@ class BoardManager:
             print(f"From '{room_name}', you can move to:")
             for idx, (direction, destination) in enumerate(directions, start=1):
                 print(f"  {idx}. {direction}: {destination}")
-            return directions
         else:
             print(f"No available moves from '{room_name}'.")
+        return directions
                 
     #Finds the position (row, column) of the given room on the board.
     def find_room_position(self, room_name):

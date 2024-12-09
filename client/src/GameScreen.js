@@ -127,7 +127,7 @@ function GameScreen({
 
         {/* Actions */}
         <div>
-          {!cannotMove ? (
+          {!cannotMove || moves.length !== 0 ? (
             <div>
               <h3>Make a Move</h3>
               <select

@@ -8,7 +8,7 @@ import EndScreen from "./EndScreen.js";
 
 // Create socket connection
 const socket = io("https://clue-game-server.onrender.com/", {
-  // const socket = io("http://localhost:5000", {
+// const socket = io("http://localhost:5000", {
   // const socket = io("http://127.0.0.1:5000", {
   transports: ["websocket", "polling"],
 });
@@ -254,8 +254,8 @@ function App() {
       alert("Please complete all suggestion fields.");
       return;
     }
-    let [charId, charStr] = suggestion.character.split(",");
-    let [weaponId, weaponStr] = suggestion.weapon.split(",");
+    let [charId, charStr] = suggestion.character.split(',');
+    let [weaponId, weaponStr] = suggestion.weapon.split(',');
 
     setMessages((prev) => [
       ...prev,
@@ -265,7 +265,7 @@ function App() {
         message: `You are making a suggestion with Suspect: ${charStr}, Weapon: ${weaponStr}, and Room: ${suggestion.room}.`,
       },
     ]);
-
+    
     suggestion.character = charId;
     suggestion.weapon = weaponId;
     switch (suggestion.room) {
@@ -297,7 +297,6 @@ function App() {
         suggestion.room = "9";
         break;
     }
-    console.log(suggestion);
     socket.emit("make_suggestion", suggestion);
     setActionMade(true);
     socket.emit("detailed_board");

@@ -348,7 +348,7 @@ def get_moves(current_player):  # Add 'data' as a placeholder argument
             "currentLocation": current_location,
             "moves": moves
         }
-
+        print(current_location)
         emit('move_options', response, room=request.sid)
 
     except ValueError as ve:
