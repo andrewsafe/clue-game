@@ -16,12 +16,12 @@ from game_system.accusation import Accusation
 from game_system.BoardManager import BoardManager
 
 app = Flask(__name__)
-# CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
-# socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
+CORS(app, origins=["https://peppy-empanada-ec068d.netlify.app"])
+socketio = SocketIO(app, cors_allowed_origins="https://peppy-empanada-ec068d.netlify.app")
 # CORS(app, origins=["http://192.168.1.22:3001"])
 # socketio = SocketIO(app, cors_allowed_origins="http://192.168.1.22:3001")
-CORS(app, origin=["http://localhost:3000"])
-socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
+# CORS(app, origin=["http://localhost:3000"])
+# socketio = SocketIO(app, cors_allowed_origins="http://localhost:3000")
 
 game_system = GameSystem()
 turn_manager = TurnManager(game_system.players)
@@ -271,14 +271,14 @@ def player_turn(data):
         emit('player_turn_response', {"error": "Missing action or playerId"})
         return
 
-    print(f"Player {player_id} is trying to {action} their turn.")
+    print(f"{player_id} is trying to {action} their turn.")
 
     if action == "start":
         message = game_system.start_turn(player_id)
         if len(game_system.active_players) == 1:
-            message = f"Player {player_id} wins by default."
+            message = f"{player_id} wins by default."
             gameOver = True
-        print(f"Turn started for Player {player_id}.")
+        print(f"Turn started for {player_id}.")
         emit('player_turn_response', {"message": message, "gameOver": gameOver}, broadcast=True)
     elif action == "end":
         if len(game_system.active_players) == 0:
@@ -287,7 +287,7 @@ def player_turn(data):
 
         game_system.counter = game_system.counter + 1 if game_system.counter + 1 < len(game_system.active_players) else 0
         next_player = game_system.active_players[game_system.counter].name
-        print(f"Turn ended for Player {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
+        print(f"Turn ended for {player_id}. Next player: {next_player}. Counter: {game_system.counter}")
         emit('player_turn_response', {"message": f"Turn ended. Next player: {next_player}", "gameOver": gameOver}, broadcast=True)
     else:
         emit('player_turn_response', {"error": "Invalid action"})
@@ -301,12 +301,12 @@ def end_turn():
     next_player = game_system.active_players[game_system.counter]
     if len(game_system.active_players) == 1:
         emit('game_over', {
-            'message': f"Player {next_player.name} wins by default, as everyone else has made an incorrect accusation.",
+            'message': f"{next_player.name} wins by default, as everyone else has made an incorrect accusation.",
             'winner': next_player.name               
         }, broadcast=True)
         return
     emit('next_turn', {
-        'message': f"Player {current_player} has ended their turn. It's now Player {next_player.name}'s turn.",
+        'message': f"{current_player} has ended their turn. It's now {next_player.name}'s turn.",
         'current_player': next_player.name, 
         'character': next_player.character,
         'moved_by_suggestion': next_player.moved_by_suggestion
@@ -432,7 +432,7 @@ def make_suggestion(data):
             }, room=suggesting_player_socket_id)
             # Notify other players that the suggestion was disproved without revealing cards
             emit('suggestion_made', {
-                "message": f"Player {player.name}'s suggestion is being disproven by Player {p.name}.",
+                "message": f"{player.name}'s suggestion is being disproven by {p.name}.",
             }, broadcast=True)
             break
 
@@ -448,7 +448,7 @@ def disprove_suggestion(disprove_player, revealed_card, current_player):
     player = next((p for p in game_system.players if p.name == current_player), None)
     socket_id = [sid for sid, pid in socket_player_map.items() if pid == player.id][0]
     emit('suggestion_disproved', {
-        "message": f"Player {disprove_player} has the card {revealed_card}, disproving the suggestion made by Player {current_player}."
+        "message": f"{disprove_player} has the card {revealed_card}, disproving the suggestion made by {current_player}."
     }, room=socket_id)
 
 
@@ -494,7 +494,7 @@ def make_accusation(data):
         game_system.active_players.pop(game_system.counter)
         game_system.counter -= 1
         emit('accusation_made', {
-            "message": f"Player {player.name} made an incorrect accusation and has lost the game."
+            "message": f"{player.name} made an incorrect accusation and has lost the game."
         }, broadcast=True)
     
 @socketio.on('chat_message')
@@ -518,6 +518,6 @@ def handle_chat_message(data):
     }, broadcast=True)
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True)
-    # port = int(os.environ.get("PORT", 5000))
-    # app.run(host="0.0.0.0", port=port)
+    # socketio.run(app, debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)

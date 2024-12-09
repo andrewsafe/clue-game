@@ -16,7 +16,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  /* gap: 15px; */
 }
 
 .center-panel {
@@ -270,7 +270,6 @@ button:hover {
 }
 
 select {
-  width: 100%;
   margin-bottom: 10px;
   background-color: #1e1e1e;
   border: 1px solid #004d99;

@@ -54,7 +54,7 @@ function GameScreen({
   playerMoved,
   actionMade,
   cannotMove,
-  movedBySuggestion
+  movedBySuggestion,
 }) {
   const [moveChoice, setMoveChoice] = useState("");
   const [suggestion, setSuggestion] = useState({
@@ -153,31 +153,31 @@ function GameScreen({
         </h2>
         <h3>
           Current Player: {currentPlayer} <br />
-          Current Player's Character: {character} <br />
+          C3rrent Player's Character: {character} <br />
           Current Player's Location: {location} <br />
         </h3>
 
         {/* Actions */}
         <div>
-        {!cannotMove ? (
-          <div>
-            <h3>Make a Move</h3>
-            <select
-              onChange={(e) => setMoveChoice(e.target.value)}
-              value={moveChoice}
-              disabled={!isPlayerTurn}
-            >
-              <option value="">Select Move</option>
-              {moves.map((move, index) => (
-                <option key={index} value={move}>
-                  {move}
-                </option>
-              ))}
-            </select>
-            <button onClick={handleMove} disabled={!isPlayerTurn}>
-              Move
-            </button>
-          </div>
+          {!cannotMove ? (
+            <div>
+              <h3>Make a Move</h3>
+              <select
+                onChange={(e) => setMoveChoice(e.target.value)}
+                value={moveChoice}
+                disabled={!isPlayerTurn}
+              >
+                <option value="">Select Move</option>
+                {moves.map((move, index) => (
+                  <option key={index} value={move}>
+                    {move}
+                  </option>
+                ))}
+              </select>
+              <button onClick={handleMove} disabled={!isPlayerTurn}>
+                Move
+              </button>
+            </div>
           ) : (
             <h4>No possible moves available.</h4>
           )}
@@ -233,27 +233,27 @@ function GameScreen({
             </div>
           )}
         </div>
-        
+
         <div>
-        {disproveSuggestionState && revealOptions.length > 0 && (
-          <div>
-            <h3>Select a Card to Disprove</h3>
-            <select
-              onChange={(e) => setRevealedCard(e.target.value)}
-              value={revealedCard || ""}
-            >
-              <option value="">Select a Card</option>
-              {revealOptions.map((card, index) => (
-                <option key={index} value={card}>
-                  {card}
-                </option>
-              ))}
-            </select>
-            <button onClick={handleDisproveSuggestion}>
-              Confirm Card to Disprove
-            </button>
-          </div>
-        )}
+          {disproveSuggestionState && revealOptions.length > 0 && (
+            <div>
+              <h3>Select a Card to Disprove</h3>
+              <select
+                onChange={(e) => setRevealedCard(e.target.value)}
+                value={revealedCard || ""}
+              >
+                <option value="">Select a Card</option>
+                {revealOptions.map((card, index) => (
+                  <option key={index} value={card}>
+                    {card}
+                  </option>
+                ))}
+              </select>
+              <button onClick={handleDisproveSuggestion}>
+                Confirm Card to Disprove
+              </button>
+            </div>
+          )}
         </div>
 
         <div>
@@ -310,15 +310,15 @@ function GameScreen({
 
         <div>
           {actionMade && (
-          <div>
-            <button
-              class="red-button"
-              onClick={handleEndTurn}
-              disabled={!isPlayerTurn}
-            >
-              End Turn
-            </button>
-          </div>
+            <div>
+              <button
+                class="red-button"
+                onClick={handleEndTurn}
+                disabled={!isPlayerTurn}
+              >
+                End Turn
+              </button>
+            </div>
           )}
         </div>
       </div>
